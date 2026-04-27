@@ -14,7 +14,7 @@ class LeadListScreen extends ConsumerWidget {
     final leads = leadsState.leads;
     
     // Calculate stats
-    final totalValue = leads.fold(0.0, (sum, l) => sum + (double.tryParse(l.notes?.match(RegExp(r'\$(\d+(\.\d+)?)'))?.group(1) ?? '0') ?? 0.0));
+    final totalValue = leads.fold(0.0, (sum, l) => sum + ((double.tryParse(RegExp(r'\$(\d+(\.\d+)?)').firstMatch(l.notes ?? '')?.group(1) ?? '0') ?? 0.0)));
     final valueStr = totalValue >= 1000000 ? '\$${(totalValue / 1000000).toStringAsFixed(1)}M' : '\$${(totalValue / 1000).toStringAsFixed(0)}K';
 
     return Scaffold(

@@ -12,7 +12,7 @@ class DashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
-    final userName = authState.user?.name ?? 'User';
+    final userName = authState.user?.firstName ?? 'User';
     final activityState = ref.watch(activityProvider);
 
     return Scaffold(

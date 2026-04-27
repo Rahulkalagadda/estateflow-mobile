@@ -38,7 +38,7 @@ class ActivitiesService {
 
   Future<List<Activity>> fetchLeadActivities(String leadId) async {
     try {
-      final response = await _apiClient.get('/activities/lead/$leadId');
+      final response = await _apiClient.dio.get('/activities/lead/$leadId');
       final List data = response.data['data'];
       return data.map((json) => Activity.fromJson(json)).toList();
     } catch (e) {
