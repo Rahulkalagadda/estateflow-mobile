@@ -279,7 +279,7 @@ class LeadDetailsScreen extends ConsumerWidget {
 
                           if (act.type == 'LEAD_CREATED') {
                             icon = Icons.person_add;
-                            color = Colors.emerald;
+                            color = Colors.teal;
                           } else if (act.type == 'LEAD_ASSIGNED') {
                             icon = Icons.assignment_ind;
                             color = Colors.blue;
@@ -376,7 +376,7 @@ class LeadDetailsScreen extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(32),
         ),

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/api_constants.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
 
 final secureStorageProvider = Provider((ref) => const FlutterSecureStorage());
 
