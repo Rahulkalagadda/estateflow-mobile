@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../auth/data/auth_service.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -156,7 +155,7 @@ class ProfileScreen extends ConsumerWidget {
             // Logout
             ElevatedButton.icon(
               onPressed: () async {
-                await ref.read(authServiceProvider).logout();
+                await ref.read(authProvider.notifier).logout();
                 if (context.mounted) {
                   context.go('/login');
                 }
