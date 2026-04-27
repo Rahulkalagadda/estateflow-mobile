@@ -36,7 +36,7 @@ jobs:
       # 5. Decode the keystore from GitHub Secret and write to disk
       - name: Decode Keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/upload-keystore.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/upload-keystore.jks
 
       # 6. Create key.properties from GitHub Secrets
       - name: Create key.properties
