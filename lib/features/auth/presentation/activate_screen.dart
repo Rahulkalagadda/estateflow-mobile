@@ -4,47 +4,81 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import 'providers/auth_provider.dart';
 
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+class ActivateScreen extends ConsumerStatefulWidget {
+  final String? token;
+  const ActivateScreen({super.key, this.token});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<ActivateScreen> createState() => _ActivateScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailController = TextEditingController();
+class _ActivateScreenState extends ConsumerState<ActivateScreen> {
+  late final TextEditingController _tokenController;
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
 
-  Future<void> _handleLogin() async {
-    setState(() => _isLoading = true);
-
-    final success = await ref.read(authProvider.notifier).login(
-      _emailController.text,
-      _passwordController.text
-    );
-
-    setState(() => _isLoading = false);
-
-    if (success && mounted) {
-      context.go('/');
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login failed. Please try again.')),
-      );
-    }
+  @override
+  void initState() {
+    super.initState();
+    _tokenController = TextEditingController(text: widget.token);
   }
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _tokenController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleActivation() async {
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Passwords do not match')),
+      );
+      return;
+    }
+
+    if (_tokenController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your activation token')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final success = await ref.read(authProvider.notifier).activate(
+      _tokenController.text.trim(),
+      _passwordController.text,
+    );
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+      if (success) {
+        context.go('/');
+      } else {
+        final error = ref.read(authProvider).error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error ?? 'Activation failed')),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          onPressed: () => context.go('/login'),
+        ),
+      ),
+      extendBodyBehindAppBar: true,
       body: Container(
         decoration: const BoxDecoration(
           gradient: RadialGradient(
@@ -66,19 +100,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: AppColors.tertiaryFixedDim,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.domain, color: Colors.white),
+                    child: const Icon(Icons.verified_user, color: AppColors.onTertiaryFixed),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Estate Logic',
+                    'Activate Account',
                     style: Theme.of(context).textTheme.displayMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'The Digital Concierge for Real Estate Professionals',
+                    'Set your password to join the team',
                     style: TextStyle(color: AppColors.onSurfaceVariant),
                     textAlign: TextAlign.center,
                   ),
@@ -92,7 +126,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
+                          color: Colors.black.withOpacity(0.04),
                           blurRadius: 24,
                           offset: const Offset(0, 8),
                         ),
@@ -101,15 +135,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        // Token
                         Text(
-                          'Welcome back',
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 32),
-
-                        // Email
-                        Text(
-                          'EMAIL ADDRESS',
+                          'ACTIVATION TOKEN',
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
@@ -119,10 +147,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         const SizedBox(height: 8),
                         TextField(
-                          controller: _emailController,
+                          controller: _tokenController,
                           decoration: InputDecoration(
-                            hintText: 'agent@estatelogic.com',
-                            prefixIcon: const Icon(Icons.mail_outline),
+                            hintText: 'Enter the code from your admin',
+                            prefixIcon: const Icon(Icons.key_outlined),
                             filled: true,
                             fillColor: AppColors.surfaceContainerLow,
                             border: OutlineInputBorder(
@@ -134,38 +162,49 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const SizedBox(height: 24),
 
                         // Password
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'PASSWORD',
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.5,
-                                color: AppColors.onSurfaceVariant,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {},
-                              child: Text(
-                                'Forgot password?',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryContainer,
-                                ),
-                              ),
-                            ),
-                          ],
+                        Text(
+                          'NEW PASSWORD',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.5,
+                            color: AppColors.onSurfaceVariant,
+                          ),
                         ),
+                        const SizedBox(height: 8),
                         TextField(
                           controller: _passwordController,
                           obscureText: true,
                           decoration: InputDecoration(
                             hintText: '••••••••',
                             prefixIcon: const Icon(Icons.lock_outline),
-                            suffixIcon: const Icon(Icons.visibility_outlined),
+                            filled: true,
+                            fillColor: AppColors.surfaceContainerLow,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Confirm Password
+                        Text(
+                          'CONFIRM PASSWORD',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.5,
+                            color: AppColors.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: _confirmPasswordController,
+                          obscureText: true,
+                          decoration: InputDecoration(
+                            hintText: '••••••••',
+                            prefixIcon: const Icon(Icons.lock_reset),
                             filled: true,
                             fillColor: AppColors.surfaceContainerLow,
                             border: OutlineInputBorder(
@@ -176,9 +215,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         const SizedBox(height: 32),
 
-                        // Login Button
+                        // Action Button
                         ElevatedButton(
-                          onPressed: _isLoading ? null : _handleLogin,
+                          onPressed: _isLoading ? null : _handleActivation,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             foregroundColor: Colors.white,
@@ -188,38 +227,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ),
                           ),
                           child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              )
                             : const Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text('Log In', style: TextStyle(fontWeight: FontWeight.bold)),
+                                  Text('Activate & Log In', style: TextStyle(fontWeight: FontWeight.bold)),
                                   SizedBox(width: 8),
-                                  Icon(Icons.arrow_forward),
+                                  Icon(Icons.check_circle_outline),
                                 ],
                               ),
-                        ),
-                        const SizedBox(height: 24),
-                        
-                        // Activation Link
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Invited by your admin?',
-                              style: TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
-                            ),
-                            TextButton(
-                              onPressed: () => context.push('/activate'),
-                              child: const Text(
-                                'Activate Account',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ),
-                          ],
                         ),
                       ],
                     ),

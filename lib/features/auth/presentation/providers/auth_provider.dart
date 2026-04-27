@@ -116,6 +116,40 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<bool> activate(String token, String password) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _apiClient.dio.post('/auth/activate', data: {
+        'token': token,
+        'password': password
+      });
+
+      final data = response.data['data'];
+      final accessToken = data['accessToken'];
+      final refreshToken = data['refreshToken'];
+      final user = UserModel.fromJson(data['user']);
+
+      await _storage.write(key: 'jwt_token', value: accessToken);
+      await _storage.write(key: 'refresh_token', value: refreshToken);
+      await _storage.write(key: 'user_data', value: jsonEncode(user.toJson()));
+
+      state = state.copyWith(
+        isLoading: false,
+        accessToken: accessToken,
+        refreshToken: refreshToken,
+        user: user
+      );
+      return true;
+    } catch (e) {
+      String errorMessage = 'Activation failed';
+      if (e is DioException) {
+        errorMessage = e.response?.data['message'] ?? 'Invalid or expired token';
+      }
+      state = state.copyWith(isLoading: false, error: errorMessage);
+      return false;
+    }
+  }
+
   Future<void> updateTokens(String accessToken, String refreshToken) async {
     await _storage.write(key: 'jwt_token', value: accessToken);
     await _storage.write(key: 'refresh_token', value: refreshToken);

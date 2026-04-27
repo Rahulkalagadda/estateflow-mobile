@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/login_screen.dart';
+import '../../features/auth/presentation/activate_screen.dart';
 import '../../features/dashboard/presentation/dashboard_screen.dart';
 import '../../features/leads/presentation/lead_list_screen.dart';
 import '../../features/leads/presentation/lead_details_screen.dart';
@@ -26,8 +27,9 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final isLoggedIn = authState.isAuthenticated;
       final isLoggingIn = state.uri.toString() == '/login';
+      final isActivating = state.uri.toString().startsWith('/activate');
 
-      if (!isLoggedIn && !isLoggingIn) return '/login';
+      if (!isLoggedIn && !isLoggingIn && !isActivating) return '/login';
       if (isLoggedIn && isLoggingIn) return '/';
       return null;
     },
@@ -35,6 +37,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/activate',
+        builder: (context, state) {
+          final token = state.uri.queryParameters['token'];
+          return ActivateScreen(token: token);
+        },
       ),
       GoRoute(
         path: '/notifications',
