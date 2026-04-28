@@ -1,4 +1,4 @@
-package com.digitalrisemarketing.crm
+package com.estateflow.crm
 
 import io.flutter.embedding.android.FlutterActivity
 
