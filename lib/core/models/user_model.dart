@@ -15,14 +15,17 @@ class UserModel {
     required this.tenantId,
   });
 
-  factory UserModel.fromJson(Map<String, dynamic> json) {
+  factory UserModel.fromJson(Map<String, dynamic>? json) {
+    if (json == null) {
+      return const UserModel(id: '', email: '', firstName: '', lastName: '', tenantId: '');
+    }
     return UserModel(
-      id: json['id'] ?? '',
-      email: json['email'] ?? '',
-      firstName: json['firstName'] ?? '',
-      lastName: json['lastName'] ?? '',
-      role: json['role'] ?? 'EMPLOYEE',
-      tenantId: json['tenantId'] ?? '',
+      id: json['id']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      firstName: json['firstName']?.toString() ?? '',
+      lastName: json['lastName']?.toString() ?? '',
+      role: json['role']?.toString() ?? 'EMPLOYEE',
+      tenantId: json['tenantId']?.toString() ?? '',
     );
   }
 

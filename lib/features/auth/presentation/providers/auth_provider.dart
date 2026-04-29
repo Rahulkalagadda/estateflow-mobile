@@ -108,6 +108,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       print('Auth State updated. Authenticated: ${state.isAuthenticated}');
       return true;
     } catch (e) {
+      print('Login Error Exception: $e');
       String errorMessage = 'Login failed';
       if (e is DioException) {
         if (e.response?.statusCode == 403) {
