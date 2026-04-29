@@ -84,7 +84,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final response = await _apiClient.dio.post('/auth/login', data: {
-        'email': email, 
+        'email': email.trim(), 
         'password': password
       });
       
@@ -127,7 +127,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final response = await _apiClient.dio.post('/auth/activate', data: {
-        'token': token,
+        'token': token.trim(),
         'password': password
       });
 
