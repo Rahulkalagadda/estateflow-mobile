@@ -6,7 +6,7 @@ class UserModel {
   final String role;
   final String tenantId;
 
-  UserModel({
+  const UserModel({
     required this.id,
     required this.email,
     required this.firstName,
@@ -17,7 +17,7 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic>? json) {
     if (json == null) {
-      return const UserModel(id: '', email: '', firstName: '', lastName: '', tenantId: '');
+      return const UserModel(id: '', email: '', firstName: '', lastName: '', role: '', tenantId: '');
     }
     return UserModel(
       id: json['id']?.toString() ?? '',
