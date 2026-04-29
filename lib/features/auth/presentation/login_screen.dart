@@ -24,13 +24,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       _passwordController.text
     );
 
+    print('Login result success: $success');
     setState(() => _isLoading = false);
 
-    if (success && mounted) {
-      context.go('/');
-    } else if (mounted) {
+    if (!success && mounted) {
+      final error = ref.read(authProvider).error;
+      print('Login failed with error: $error');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login failed. Please try again.')),
+        SnackBar(content: Text(error ?? 'Login failed. Please try again.')),
       );
     }
   }

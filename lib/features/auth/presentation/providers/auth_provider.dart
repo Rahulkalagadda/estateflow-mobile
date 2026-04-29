@@ -36,7 +36,11 @@ class AuthState {
     );
   }
 
-  bool get isAuthenticated => accessToken != null && user != null;
+  bool get isAuthenticated {
+    final authenticated = accessToken != null && user != null;
+    print('Checking isAuthenticated: $authenticated (token: ${accessToken != null}, user: ${user != null})');
+    return authenticated;
+  }
 }
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
@@ -84,10 +88,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
         'password': password
       });
       
-      final data = response.data;
+      final data = response.data['data'];
+      print('Login Response Data: $data');
       final accessToken = data['accessToken'];
       final refreshToken = data['refreshToken'];
       final user = UserModel.fromJson(data['user']);
+      print('Parsed User: ${user.email}');
 
       await _storage.write(key: 'jwt_token', value: accessToken);
       await _storage.write(key: 'refresh_token', value: refreshToken);
@@ -99,6 +105,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         refreshToken: refreshToken,
         user: user
       );
+      print('Auth State updated. Authenticated: ${state.isAuthenticated}');
       return true;
     } catch (e) {
       String errorMessage = 'Login failed';

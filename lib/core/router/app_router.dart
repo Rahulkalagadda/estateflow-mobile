@@ -18,19 +18,46 @@ import '../theme/app_theme.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
+/// A notifier that triggers a router refresh when the auth state changes.
+class RouterNotifier extends ChangeNotifier {
+  final Ref _ref;
+
+  RouterNotifier(this._ref) {
+    _ref.listen(authProvider, (previous, next) {
+      if (previous?.isAuthenticated != next.isAuthenticated) {
+        notifyListeners();
+      }
+    });
+  }
+}
+
+final routerNotifierProvider = Provider((ref) => RouterNotifier(ref));
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  final notifier = ref.watch(routerNotifierProvider);
+  final authState = ref.read(authProvider);
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
+    refreshListenable: notifier,
     initialLocation: '/',
     redirect: (context, state) {
-      final isLoggedIn = authState.isAuthenticated;
+      // Use ref.read here because refreshListenable will trigger a re-evaluation
+      final auth = ref.read(authProvider);
+      final isLoggedIn = auth.isAuthenticated;
       final isLoggingIn = state.uri.toString() == '/login';
       final isActivating = state.uri.toString().startsWith('/activate');
 
-      if (!isLoggedIn && !isLoggingIn && !isActivating) return '/login';
-      if (isLoggedIn && isLoggingIn) return '/';
+      print('Router Redirect: isLoggedIn=$isLoggedIn, location=${state.uri}');
+
+      if (!isLoggedIn && !isLoggingIn && !isActivating) {
+        print('Redirecting to /login');
+        return '/login';
+      }
+      if (isLoggedIn && isLoggingIn) {
+        print('Redirecting to / (from login)');
+        return '/';
+      }
       return null;
     },
     routes: [
