@@ -17,6 +17,10 @@ class _CreateLeadScreenState extends ConsumerState<CreateLeadScreen> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _notesController = TextEditingController();
+  final _budgetController = TextEditingController();
+  final _propertyController = TextEditingController();
+  final _preapprovalController = TextEditingController();
+  final _locationController = TextEditingController();
 
   Future<void> _saveLead() async {
     final success = await ref.read(leadsProvider.notifier).createLead({
@@ -25,6 +29,10 @@ class _CreateLeadScreenState extends ConsumerState<CreateLeadScreen> {
       'phone': _phoneController.text,
       'email': _emailController.text,
       'notes': _notesController.text,
+      'budget': double.tryParse(_budgetController.text),
+      'interestedProperty': _propertyController.text,
+      'preapprovalStatus': _preapprovalController.text,
+      'location': _locationController.text,
     });
 
     if (success && mounted) {
@@ -78,6 +86,14 @@ class _CreateLeadScreenState extends ConsumerState<CreateLeadScreen> {
               icon: Icons.notes,
               children: [
                 _buildInputField('NOTES', 'Interested in luxury properties...', controller: _notesController),
+                const SizedBox(height: 16),
+                _buildInputField('BUDGET', 'e.g. 5000000', type: TextInputType.number, controller: _budgetController),
+                const SizedBox(height: 16),
+                _buildInputField('INTERESTED PROPERTY', 'e.g. Skyline Penthouse', controller: _propertyController),
+                const SizedBox(height: 16),
+                _buildInputField('PRE-APPROVAL STATUS', 'e.g. Verified ₹10 Cr', controller: _preapprovalController),
+                const SizedBox(height: 16),
+                _buildInputField('LOCATION', 'e.g. Los Angeles, CA', controller: _locationController),
               ],
             ),
 

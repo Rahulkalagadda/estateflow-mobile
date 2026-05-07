@@ -119,28 +119,21 @@ class LeadDetailsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 24),
 
-                    // Stage
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.2)),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('CURRENT STAGE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: AppColors.onSurfaceVariant)),
-                                const SizedBox(height: 4),
-                                Text(lead.stageId, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                    // Additional Details Grid
+                    const SizedBox(height: 24),
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      childAspectRatio: 2.5,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                      children: [
+                        _buildDetailItem('LOCATION', lead.location ?? 'Not set', Icons.location_on),
+                        _buildDetailItem('BUDGET', lead.budget != null ? '₹${NumberFormat('#,##,###').format(lead.budget)}' : 'Not set', Icons.payments),
+                        _buildDetailItem('PROPERTY', lead.interestedProperty ?? 'Not set', Icons.home_work),
+                        _buildDetailItem('PRE-APPROVAL', lead.preapprovalStatus ?? 'Not set', Icons.verified_user),
+                      ],
                     ),
                   ],
                 ),
@@ -362,6 +355,36 @@ class LeadDetailsScreen extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildDetailItem(String label, String value, IconData icon) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 12, color: AppColors.primary),
+            const SizedBox(width: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+                color: AppColors.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 

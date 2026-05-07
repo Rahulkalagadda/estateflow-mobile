@@ -5,6 +5,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
 
 import 'providers/activity_provider.dart';
+import '../../leads/presentation/providers/leads_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -14,6 +15,18 @@ class DashboardScreen extends ConsumerWidget {
     final authState = ref.watch(authProvider);
     final userName = authState.user?.firstName ?? 'User';
     final activityState = ref.watch(activityProvider);
+    final leadState = ref.watch(leadsProvider);
+    final leads = leadState.leads;
+
+    // Calculate dynamic stats
+    final totalLeads = leads.length.toString();
+    final todayLeads = leads.where((l) => 
+      l.createdAt.day == DateTime.now().day && 
+      l.createdAt.month == DateTime.now().month && 
+      l.createdAt.year == DateTime.now().year
+    ).length.toString();
+    final interestedLeads = leads.where((l) => l.stageId.toUpperCase().contains('INTERESTED')).length.toString();
+    final closedLeads = leads.where((l) => l.stageId.toUpperCase().contains('CLOSED')).length.toString();
 
     return Scaffold(
       appBar: AppBar(
@@ -65,7 +78,7 @@ class DashboardScreen extends ConsumerWidget {
                 _buildStatCard(
                   context,
                   title: 'Total',
-                  value: '128',
+                  value: totalLeads,
                   subtitle: 'Active Leads',
                   icon: Icons.group,
                   backgroundColor: AppColors.primaryContainer,
@@ -75,8 +88,8 @@ class DashboardScreen extends ConsumerWidget {
                 _buildStatCard(
                   context,
                   title: 'Today',
-                  value: '12',
-                  subtitle: 'Follow-ups',
+                  value: todayLeads,
+                  subtitle: 'New Today',
                   icon: Icons.event_repeat,
                   backgroundColor: AppColors.tertiaryFixedDim,
                   textColor: AppColors.onTertiaryFixed,
@@ -85,7 +98,7 @@ class DashboardScreen extends ConsumerWidget {
                 _buildStatCard(
                   context,
                   title: 'Interested',
-                  value: '45',
+                  value: interestedLeads,
                   subtitle: 'Interested',
                   icon: Icons.star,
                   backgroundColor: AppColors.secondaryContainer,
@@ -96,7 +109,7 @@ class DashboardScreen extends ConsumerWidget {
                 _buildStatCard(
                   context,
                   title: 'Closed Deals',
-                  value: '18',
+                  value: closedLeads,
                   subtitle: 'Closed Deals',
                   icon: Icons.handshake,
                   backgroundColor: AppColors.surfaceContainerHighest,

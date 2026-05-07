@@ -8,6 +8,11 @@ class LeadModel {
   final String stageId;
   final String? assigneeId;
   final String? notes;
+  final double? budget;
+  final String? interestedProperty;
+  final String? preapprovalStatus;
+  final DateTime? expectedCloseDate;
+  final String? location;
   final DateTime createdAt;
 
   LeadModel({
@@ -20,6 +25,11 @@ class LeadModel {
     required this.stageId,
     this.assigneeId,
     this.notes,
+    this.budget,
+    this.interestedProperty,
+    this.preapprovalStatus,
+    this.expectedCloseDate,
+    this.location,
     required this.createdAt,
   });
 
@@ -34,6 +44,13 @@ class LeadModel {
       stageId: json['stageId'] ?? '',
       assigneeId: json['assigneeId'],
       notes: json['notes'],
+      budget: json['budget'] != null ? (json['budget'] as num).toDouble() : null,
+      interestedProperty: json['interestedProperty'],
+      preapprovalStatus: json['preapprovalStatus'],
+      expectedCloseDate: json['expectedCloseDate'] != null 
+          ? DateTime.parse(json['expectedCloseDate']) 
+          : null,
+      location: json['location'],
       createdAt: json['createdAt'] != null 
           ? DateTime.parse(json['createdAt']) 
           : DateTime.now(),
@@ -51,6 +68,11 @@ class LeadModel {
       'stageId': stageId,
       'assigneeId': assigneeId,
       'notes': notes,
+      'budget': budget,
+      'interestedProperty': interestedProperty,
+      'preapprovalStatus': preapprovalStatus,
+      'expectedCloseDate': expectedCloseDate?.toIso8601String(),
+      'location': location,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -65,6 +87,11 @@ class LeadModel {
     String? stageId,
     String? assigneeId,
     String? notes,
+    double? budget,
+    String? interestedProperty,
+    String? preapprovalStatus,
+    DateTime? expectedCloseDate,
+    String? location,
     DateTime? createdAt,
   }) {
     return LeadModel(
@@ -77,6 +104,11 @@ class LeadModel {
       stageId: stageId ?? this.stageId,
       assigneeId: assigneeId ?? this.assigneeId,
       notes: notes ?? this.notes,
+      budget: budget ?? this.budget,
+      interestedProperty: interestedProperty ?? this.interestedProperty,
+      preapprovalStatus: preapprovalStatus ?? this.preapprovalStatus,
+      expectedCloseDate: expectedCloseDate ?? this.expectedCloseDate,
+      location: location ?? this.location,
       createdAt: createdAt ?? this.createdAt,
     );
   }
