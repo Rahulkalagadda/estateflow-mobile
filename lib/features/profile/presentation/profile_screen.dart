@@ -2,13 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
+import '../../leads/presentation/providers/leads_provider.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    final user = authState.user;
+    final leadState = ref.watch(leadsProvider);
+    
+    final totalLeads = leadState.leads.length;
+    final totalPortfolio = leadState.leads.fold(0.0, (sum, l) => sum + (l.budget ?? 0));
+    final fmtPortfolio = totalPortfolio >= 10000000 
+        ? '₹${(totalPortfolio / 10000000).toStringAsFixed(1)} Cr' 
+        : '₹${(totalPortfolio / 100000).toStringAsFixed(1)} L';
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -40,8 +52,9 @@ class ProfileScreen extends ConsumerWidget {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(22),
                         child: Image.network(
-                          'https://lh3.googleusercontent.com/aida-public/AB6AXuAT20alIQCrQTbC0mHFTAQmEhOWBXinHtsHo1eC76ljJd51Dmjp0cXI5PD4vVqKjbHJHaQAOmHmIiuYYqh1_mgIHMx719NWeyFbEzJKwY6yQ9iYd6NDLv9ynICvxpM2BKmI6DRn5WS3DDmQhSRVSfBjIajpXb3yjGaWGaRKH_In4ixjZzQzwhKijl65UkOuoxq56gM2dR9h9Dzbz4S0pGElZLsl8zZUEef9hdWribYzNof1K4DEZ3OoOUSXVsEEpMTfXwncaw0f_htV',
+                          'https://i.pravatar.cc/200?u=${user?.id}',
                           fit: BoxFit.cover,
+                          errorBuilder: (c, e, s) => const Icon(Icons.person, size: 64, color: Colors.white),
                         ),
                       ),
                     ),
@@ -63,15 +76,15 @@ class ProfileScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 24),
-                Text('Alex Reed', style: Theme.of(context).textTheme.displayMedium),
+                Text('${user?.firstName ?? ''} ${user?.lastName ?? ''}', style: Theme.of(context).textTheme.displayMedium),
                 const SizedBox(height: 4),
-                const Text('Senior Real Estate Consultant', style: TextStyle(fontWeight: FontWeight.w500, color: AppColors.onSurfaceVariant)),
+                Text(user?.title ?? user?.role ?? 'Agent', style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.onSurfaceVariant)),
                 const SizedBox(height: 16),
                 Row(
                   children: [
                     _buildBadge('Top Producer', AppColors.secondaryContainer.withValues(alpha: 0.3), AppColors.onSecondaryFixedVariant),
                     const SizedBox(width: 8),
-                    _buildBadge('Platinum Tier', AppColors.primaryFixed, AppColors.onPrimaryFixed),
+                    _buildBadge(user?.role ?? 'MEMBER', AppColors.primaryFixed, AppColors.onPrimaryFixed),
                   ],
                 ),
               ],
@@ -87,8 +100,8 @@ class ProfileScreen extends ConsumerWidget {
               crossAxisSpacing: 16,
               childAspectRatio: 1.5,
               children: [
-                _buildStatCard(context, 'Portfolio', '\$42.8M'),
-                _buildStatCard(context, 'Active Leads', '124'),
+                _buildStatCard(context, 'Portfolio', fmtPortfolio),
+                _buildStatCard(context, 'Active Leads', totalLeads.toString()),
               ],
             ),
             const SizedBox(height: 16),

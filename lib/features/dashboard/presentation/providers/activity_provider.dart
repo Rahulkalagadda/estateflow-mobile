@@ -11,27 +11,13 @@ class ActivityService {
   ActivityService(this._apiClient);
 
   Future<List<ActivityModel>> fetchActivities() async {
-    await Future.delayed(const Duration(seconds: 1));
-    return [
-      ActivityModel(
-        id: '1',
-        type: 'Call',
-        title: 'Call with Sarah Jenkins',
-        description: 'Discussed the property requirements.',
-        leadId: '1',
-        createdAt: DateTime.now().subtract(const Duration(minutes: 20)),
-        status: 'Completed',
-      ),
-      ActivityModel(
-        id: '2',
-        type: 'Note',
-        title: 'New lead: James Wilson',
-        description: 'Added to the system.',
-        leadId: '2',
-        createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-        status: 'Pending',
-      ),
-    ];
+    try {
+      final response = await _apiClient.dio.get('/activities');
+      final List data = response.data['data'] ?? [];
+      return data.map((json) => ActivityModel.fromJson(json)).toList();
+    } catch (e) {
+      throw Exception('Failed to fetch activities: $e');
+    }
   }
 }
 

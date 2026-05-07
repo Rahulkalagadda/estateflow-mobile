@@ -13,6 +13,7 @@ class LeadModel {
   final String? preapprovalStatus;
   final DateTime? expectedCloseDate;
   final String? location;
+  final String? source;
   final DateTime createdAt;
 
   LeadModel({
@@ -30,6 +31,7 @@ class LeadModel {
     this.preapprovalStatus,
     this.expectedCloseDate,
     this.location,
+    this.source,
     required this.createdAt,
   });
 
@@ -51,6 +53,7 @@ class LeadModel {
           ? DateTime.parse(json['expectedCloseDate']) 
           : null,
       location: json['location'],
+      source: json['source'],
       createdAt: json['createdAt'] != null 
           ? DateTime.parse(json['createdAt']) 
           : DateTime.now(),
@@ -73,6 +76,7 @@ class LeadModel {
       'preapprovalStatus': preapprovalStatus,
       'expectedCloseDate': expectedCloseDate?.toIso8601String(),
       'location': location,
+      'source': source,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -92,6 +96,7 @@ class LeadModel {
     String? preapprovalStatus,
     DateTime? expectedCloseDate,
     String? location,
+    String? source,
     DateTime? createdAt,
   }) {
     return LeadModel(
@@ -109,6 +114,7 @@ class LeadModel {
       preapprovalStatus: preapprovalStatus ?? this.preapprovalStatus,
       expectedCloseDate: expectedCloseDate ?? this.expectedCloseDate,
       location: location ?? this.location,
+      source: source ?? this.source,
       createdAt: createdAt ?? this.createdAt,
     );
   }

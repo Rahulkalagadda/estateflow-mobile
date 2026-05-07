@@ -195,17 +195,8 @@ class DashboardScreen extends ConsumerWidget {
               )
             else
               ...activityState.activities.map((activity) => Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: _buildActivityItem(
-                  context,
-                  icon: activity.type == 'Call' ? Icons.call : Icons.person_pin,
-                  iconBgColor: activity.type == 'Call' ? AppColors.primaryContainer.withValues(alpha: 0.1) : AppColors.tertiaryFixed,
-                  iconColor: activity.type == 'Call' ? AppColors.primary : AppColors.onTertiaryFixed,
-                  title: activity.title,
-                  time: 'Just now', // Could be formatted from activity.createdAt
-                  status: activity.status,
-                  statusColor: activity.status == 'Completed' ? AppColors.secondaryContainer : AppColors.tertiaryFixedDim,
-                ),
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: _buildActivityItem(context, activity),
               )),
           ],
         ),
@@ -282,41 +273,12 @@ class DashboardScreen extends ConsumerWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: iconBgColor,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: iconColor, size: 20),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
-                    Text(time, style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: statusColor,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              status.toUpperCase(),
               style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.onSurface),
             ),
           ),

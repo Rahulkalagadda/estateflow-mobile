@@ -14,8 +14,10 @@ class LeadListScreen extends ConsumerWidget {
     final leads = leadsState.leads;
     
     // Calculate stats
-    final totalValue = leads.fold(0.0, (sum, l) => sum + ((double.tryParse(RegExp(r'\$(\d+(\.\d+)?)').firstMatch(l.notes ?? '')?.group(1) ?? '0') ?? 0.0)));
-    final valueStr = totalValue >= 1000000 ? '\$${(totalValue / 1000000).toStringAsFixed(1)}M' : '\$${(totalValue / 1000).toStringAsFixed(0)}K';
+    final totalValue = leads.fold(0.0, (sum, l) => sum + (l.budget ?? 0.0));
+    final valueStr = totalValue >= 10000000 
+        ? '₹${(totalValue / 10000000).toStringAsFixed(1)} Cr' 
+        : '₹${(totalValue / 100000).toStringAsFixed(1)} L';
 
     return Scaffold(
       appBar: AppBar(
@@ -53,102 +55,89 @@ class LeadListScreen extends ConsumerWidget {
               ],
             ),
           ),
-
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              children: [
-                // Pipeline Stats Bento
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryContainer,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('ACTIVE LEADS', style: TextStyle(fontSize: 10, color: Colors.white70, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                            const SizedBox(height: 8),
-                            Text('${leads.length}', style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: AppColors.tertiaryFixedDim,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('PIPELINE VALUE', style: TextStyle(fontSize: 10, color: AppColors.onTertiaryFixed, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                            const SizedBox(height: 8),
-                            Text(valueStr, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.onTertiaryFixed, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Recent Inquiries', style: Theme.of(context).textTheme.titleLarge),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Lead Cards from Riverpod state
-                leadsState.isLoading
-                    ? const Padding(
-                        padding: EdgeInsets.only(top: 80.0),
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    : leads.isEmpty
-                        ? Padding(
-                            padding: const EdgeInsets.only(top: 80.0),
-                            child: Column(
+            child: leadsState.isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : CustomScrollView(
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        sliver: SliverList(
+                          delegate: SliverChildListDelegate([
+                            // Pipeline Stats Bento
+                            Row(
                               children: [
-                                Icon(Icons.person_search_outlined, size: 80, color: AppColors.onSurfaceVariant.withOpacity(0.2)),
-                                const SizedBox(height: 16),
-                                Text('No leads found', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.onSurfaceVariant)),
-                                const SizedBox(height: 8),
-                                Text('Start by adding your first lead to the pipeline.', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.onSurfaceVariant)),
-                                const SizedBox(height: 24),
-                                ElevatedButton(
-                                  onPressed: () => ref.read(leadsProvider.notifier).fetchLeads(),
-                                  child: const Text('Refresh Pipeline'),
+                                Expanded(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryContainer,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text('ACTIVE LEADS', style: TextStyle(fontSize: 10, color: Colors.white70, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                        const SizedBox(height: 8),
+                                        Text('${leads.length}', style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.tertiaryFixedDim,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text('PIPELINE VALUE', style: TextStyle(fontSize: 10, color: AppColors.onTertiaryFixed, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                                        const SizedBox(height: 8),
+                                        Text(valueStr, style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: AppColors.onTertiaryFixed, fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
-                          )
-                        : ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: leads.length,
-                            itemBuilder: (context, index) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 16.0),
-                                child: _buildLeadCard(
-                                  context,
-                                  ref: ref,
-                                  lead: leads[index],
-                                ),
-                              );
-                            },
+                            const SizedBox(height: 24),
+                            Text('Recent Inquiries', style: Theme.of(context).textTheme.titleLarge),
+                            const SizedBox(height: 16),
+                          ]),
+                        ),
+                      ),
+                      if (leads.isEmpty)
+                        SliverFillRemaining(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.person_search_outlined, size: 80, color: AppColors.onSurfaceVariant.withOpacity(0.2)),
+                              const SizedBox(height: 16),
+                              Text('No leads found', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: AppColors.onSurfaceVariant)),
+                              const SizedBox(height: 8),
+                              Text('Start by adding your first lead to the pipeline.', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.onSurfaceVariant)),
+                            ],
                           ),
-              ],
-            ),
+                        )
+                      else
+                        SliverPadding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) => Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0),
+                                child: _buildLeadCard(context, ref: ref, lead: leads[index]),
+                              ),
+                              childCount: leads.length,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
           ),
         ],
       ),

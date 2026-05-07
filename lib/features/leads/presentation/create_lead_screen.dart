@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import 'providers/leads_provider.dart';
+import 'providers/pipeline_provider.dart';
 
 class CreateLeadScreen extends ConsumerStatefulWidget {
   const CreateLeadScreen({super.key});
@@ -18,11 +19,20 @@ class _CreateLeadScreenState extends ConsumerState<CreateLeadScreen> {
   final _emailController = TextEditingController();
   final _notesController = TextEditingController();
   final _budgetController = TextEditingController();
+  final _sourceController = TextEditingController(text: 'Mobile App');
   final _propertyController = TextEditingController();
   final _preapprovalController = TextEditingController();
   final _locationController = TextEditingController();
 
   Future<void> _saveLead() async {
+    final pipelineState = ref.read(pipelineProvider);
+    if (pipelineState.stages.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please wait for pipeline stages to load...')),
+      );
+      return;
+    }
+
     final success = await ref.read(leadsProvider.notifier).createLead({
       'firstName': _firstNameController.text,
       'lastName': _lastNameController.text,
@@ -30,9 +40,11 @@ class _CreateLeadScreenState extends ConsumerState<CreateLeadScreen> {
       'email': _emailController.text,
       'notes': _notesController.text,
       'budget': double.tryParse(_budgetController.text),
+      'source': _sourceController.text,
       'interestedProperty': _propertyController.text,
       'preapprovalStatus': _preapprovalController.text,
       'location': _locationController.text,
+      'stageId': pipelineState.stages.first.id,
     });
 
     if (success && mounted) {
@@ -88,6 +100,8 @@ class _CreateLeadScreenState extends ConsumerState<CreateLeadScreen> {
                 _buildInputField('NOTES', 'Interested in luxury properties...', controller: _notesController),
                 const SizedBox(height: 16),
                 _buildInputField('BUDGET', 'e.g. 5000000', type: TextInputType.number, controller: _budgetController),
+                const SizedBox(height: 16),
+                _buildInputField('LEAD SOURCE', 'e.g. Web, Referral, Instagram', controller: _sourceController),
                 const SizedBox(height: 16),
                 _buildInputField('INTERESTED PROPERTY', 'e.g. Skyline Penthouse', controller: _propertyController),
                 const SizedBox(height: 16),
