@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/pipeline_service.dart';
-import '../core/models/pipeline_stage_model.dart';
+import '../../../../services/pipeline_service.dart';
+import '../../../../core/models/pipeline_stage_model.dart';
 
 class PipelineState {
   final bool isLoading;

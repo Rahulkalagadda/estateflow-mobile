@@ -130,7 +130,7 @@ class LeadDetailsScreen extends ConsumerWidget {
                       mainAxisSpacing: 16,
                       children: [
                         _buildDetailItem('LOCATION', lead.location ?? 'Not set', Icons.location_on),
-                        _buildDetailItem('SOURCE', lead.source ?? 'Not set', Icons.origin),
+                        _buildDetailItem('SOURCE', lead.source ?? 'Not set', Icons.campaign),
                         _buildDetailItem('BUDGET', lead.budget != null ? '₹${NumberFormat('#,##,###').format(lead.budget)}' : 'Not set', Icons.payments),
                         _buildDetailItem('PROPERTY', lead.interestedProperty ?? 'Not set', Icons.home_work),
                         _buildDetailItem('PRE-APPROVAL', lead.preapprovalStatus ?? 'Not set', Icons.verified_user),

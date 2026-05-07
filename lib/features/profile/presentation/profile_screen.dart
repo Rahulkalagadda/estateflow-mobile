@@ -78,7 +78,7 @@ class ProfileScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
                 Text('${user?.firstName ?? ''} ${user?.lastName ?? ''}', style: Theme.of(context).textTheme.displayMedium),
                 const SizedBox(height: 4),
-                Text(user?.title ?? user?.role ?? 'Agent', style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.onSurfaceVariant)),
+                Text(user?.role ?? 'Agent', style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.onSurfaceVariant)),
                 const SizedBox(height: 16),
                 Row(
                   children: [

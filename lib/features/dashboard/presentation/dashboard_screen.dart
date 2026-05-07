@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
+import '../../../../core/models/activity_model.dart';
 
 import 'providers/activity_provider.dart';
 import '../../leads/presentation/providers/leads_provider.dart';
@@ -249,16 +250,34 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildActivityItem(
-    BuildContext context, {
-    required IconData icon,
-    required Color iconBgColor,
-    required Color iconColor,
-    required String title,
-    required String time,
-    required String status,
-    required Color statusColor,
-  }) {
+  Widget _buildActivityItem(BuildContext context, ActivityModel activity) {
+    IconData icon = Icons.notifications;
+    Color iconBgColor = AppColors.surfaceContainerHigh;
+    Color iconColor = AppColors.primary;
+
+    switch (activity.type) {
+      case 'LEAD_CREATED':
+        icon = Icons.person_add;
+        iconBgColor = const Color(0xFFEEF2FF);
+        iconColor = const Color(0xFF4F46E5);
+        break;
+      case 'STAGE_CHANGED':
+        icon = Icons.sync;
+        iconBgColor = const Color(0xFFFFF7ED);
+        iconColor = const Color(0xFFF97316);
+        break;
+      case 'TASK_COMPLETED':
+        icon = Icons.task_alt;
+        iconBgColor = const Color(0xFFF0FDF4);
+        iconColor = const Color(0xFF22C55E);
+        break;
+      case 'NOTE_ADDED':
+        icon = Icons.description;
+        iconBgColor = const Color(0xFFEFF6FF);
+        iconColor = const Color(0xFF3B82F6);
+        break;
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -279,11 +298,41 @@ class DashboardScreen extends ConsumerWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.onSurface),
+              color: iconBgColor,
+              borderRadius: BorderRadius.circular(12),
             ),
+            child: Icon(icon, color: iconColor),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  activity.displayTitle,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  activity.displayDescription,
+                  style: TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            _getTimeAgo(activity.createdAt),
+            style: TextStyle(fontSize: 10, color: AppColors.onSurfaceVariant),
           ),
         ],
       ),
     );
+  }
+
+  String _getTimeAgo(DateTime date) {
+    final diff = DateTime.now().difference(date);
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
   }
 }
