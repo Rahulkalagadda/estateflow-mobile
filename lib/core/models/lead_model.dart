@@ -1,3 +1,5 @@
+import 'pipeline_stage_model.dart';
+
 class LeadModel {
   final String id;
   final String tenantId;
@@ -15,6 +17,7 @@ class LeadModel {
   final String? location;
   final String? source;
   final DateTime createdAt;
+  final PipelineStageModel? stage;
 
   LeadModel({
     required this.id,
@@ -33,6 +36,7 @@ class LeadModel {
     this.location,
     this.source,
     required this.createdAt,
+    this.stage,
   });
 
   factory LeadModel.fromJson(Map<String, dynamic> json) {
@@ -57,6 +61,7 @@ class LeadModel {
       createdAt: json['createdAt'] != null 
           ? DateTime.parse(json['createdAt']) 
           : DateTime.now(),
+      stage: json['stage'] != null ? PipelineStageModel.fromJson(json['stage']) : null,
     );
   }
 

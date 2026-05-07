@@ -187,7 +187,12 @@ class LeadListScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('${lead.firstName} ${lead.lastName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary)),
+                      Text(
+                        '${lead.firstName} ${lead.lastName}', 
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       const SizedBox(height: 4),
                       Row(
                         children: [
@@ -199,15 +204,24 @@ class LeadListScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceContainerHigh,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    lead.stageId.toUpperCase(),
-                    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.onSurfaceVariant),
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: lead.stage?.uiColor.withOpacity(0.1) ?? AppColors.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      (lead.stage?.name ?? 'NEW').toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 9, 
+                        fontWeight: FontWeight.black, 
+                        color: lead.stage?.uiColor ?? AppColors.onSurfaceVariant,
+                        letterSpacing: 0.5
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ),
               ],
