@@ -215,7 +215,7 @@ class LeadListScreen extends ConsumerWidget {
                       (lead.stage?.name ?? 'NEW').toUpperCase(),
                       style: TextStyle(
                         fontSize: 9, 
-                        fontWeight: FontWeight.black, 
+                        fontWeight: FontWeight.w900, 
                         color: lead.stage?.uiColor ?? AppColors.onSurfaceVariant,
                         letterSpacing: 0.5
                       ),
