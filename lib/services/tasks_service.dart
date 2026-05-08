@@ -29,4 +29,13 @@ class TasksService {
       throw Exception('Failed to update task: $e');
     }
   }
+
+  Future<TaskModel> createTask(Map<String, dynamic> data) async {
+    try {
+      final response = await _apiClient.dio.post('/tasks', data: data);
+      return TaskModel.fromJson(response.data['data']);
+    } catch (e) {
+      throw Exception('Failed to create task: $e');
+    }
+  }
 }

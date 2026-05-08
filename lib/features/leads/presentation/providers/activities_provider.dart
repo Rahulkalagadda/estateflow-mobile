@@ -39,6 +39,15 @@ class ActivitiesNotifier extends StateNotifier<ActivitiesState> {
       state = state.copyWith(error: e.toString(), isLoading: false);
     }
   }
+
+  Future<void> addNote(String leadId, String note) async {
+    try {
+      final activity = await _service.createActivity(leadId, 'NOTE_ADDED', metadata: {'note': note});
+      state = state.copyWith(activities: [activity, ...state.activities]);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
 }
 
 final activitiesProvider = StateNotifierProvider.family<ActivitiesNotifier, ActivitiesState, String>((ref, leadId) {

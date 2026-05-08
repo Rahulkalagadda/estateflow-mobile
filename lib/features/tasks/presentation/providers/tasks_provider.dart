@@ -59,4 +59,13 @@ class TasksNotifier extends StateNotifier<TasksState> {
       state = state.copyWith(error: e.toString());
     }
   }
+
+  Future<void> createTask(Map<String, dynamic> data) async {
+    try {
+      final newTask = await _tasksService.createTask(data);
+      state = state.copyWith(tasks: [newTask, ...state.tasks]);
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+    }
+  }
 }

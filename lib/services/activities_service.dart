@@ -45,6 +45,19 @@ class ActivitiesService {
       rethrow;
     }
   }
+
+  Future<Activity> createActivity(String leadId, String type, {Map<String, dynamic>? metadata}) async {
+    try {
+      final response = await _apiClient.dio.post('/activities', data: {
+        'leadId': leadId,
+        'type': type,
+        'metadata': metadata,
+      });
+      return Activity.fromJson(response.data['data']);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
 
 final activitiesServiceProvider = Provider<ActivitiesService>((ref) {
