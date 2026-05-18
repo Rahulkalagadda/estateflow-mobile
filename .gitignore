@@ -37,6 +37,7 @@ android/key.properties
 android/*.keystore
 android/*.jks
 android/.gradle/
+android/.gradle-alt/
 android/**/google-services.json
 android/app/google-services.json
 
