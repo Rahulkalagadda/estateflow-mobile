@@ -5,24 +5,44 @@ import '../../../core/theme/app_theme.dart';
 import 'providers/leads_provider.dart';
 import 'providers/pipeline_provider.dart';
 
+import '../../../core/models/lead_model.dart';
+
 class CreateLeadScreen extends ConsumerStatefulWidget {
-  const CreateLeadScreen({super.key});
+  final LeadModel? existingLead;
+  
+  const CreateLeadScreen({super.key, this.existingLead});
 
   @override
   ConsumerState<CreateLeadScreen> createState() => _CreateLeadScreenState();
 }
 
 class _CreateLeadScreenState extends ConsumerState<CreateLeadScreen> {
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _notesController = TextEditingController();
-  final _budgetController = TextEditingController();
-  final _sourceController = TextEditingController(text: 'Mobile App');
-  final _propertyController = TextEditingController();
-  final _preapprovalController = TextEditingController();
-  final _locationController = TextEditingController();
+  late final TextEditingController _firstNameController;
+  late final TextEditingController _lastNameController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _notesController;
+  late final TextEditingController _budgetController;
+  late final TextEditingController _sourceController;
+  late final TextEditingController _propertyController;
+  late final TextEditingController _preapprovalController;
+  late final TextEditingController _locationController;
+
+  @override
+  void initState() {
+    super.initState();
+    final lead = widget.existingLead;
+    _firstNameController = TextEditingController(text: lead?.firstName ?? '');
+    _lastNameController = TextEditingController(text: lead?.lastName ?? '');
+    _phoneController = TextEditingController(text: lead?.phone ?? '');
+    _emailController = TextEditingController(text: lead?.email ?? '');
+    _notesController = TextEditingController(text: lead?.notes ?? '');
+    _budgetController = TextEditingController(text: lead?.budget?.toString() ?? '');
+    _sourceController = TextEditingController(text: lead?.source ?? 'Mobile App');
+    _propertyController = TextEditingController(text: lead?.interestedProperty ?? '');
+    _preapprovalController = TextEditingController(text: lead?.preapprovalStatus ?? '');
+    _locationController = TextEditingController(text: lead?.location ?? '');
+  }
 
   Future<void> _saveLead() async {
     final pipelineState = ref.read(pipelineProvider);
@@ -33,7 +53,7 @@ class _CreateLeadScreenState extends ConsumerState<CreateLeadScreen> {
       return;
     }
 
-    final success = await ref.read(leadsProvider.notifier).createLead({
+    final data = {
       'firstName': _firstNameController.text,
       'lastName': _lastNameController.text,
       'phone': _phoneController.text,
@@ -44,19 +64,38 @@ class _CreateLeadScreenState extends ConsumerState<CreateLeadScreen> {
       'interestedProperty': _propertyController.text,
       'preapprovalStatus': _preapprovalController.text,
       'location': _locationController.text,
-      'stageId': pipelineState.stages.first.id,
-    });
+    };
 
-    if (success && mounted) {
-      context.pop();
+    bool success;
+    if (widget.existingLead != null) {
+      success = await ref.read(leadsProvider.notifier).updateLead(widget.existingLead!.id, data);
+    } else {
+      data['stageId'] = pipelineState.stages.first.id;
+      success = await ref.read(leadsProvider.notifier).createLead(data);
+    }
+
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(widget.existingLead != null ? 'Lead updated successfully!' : 'Lead created successfully!'), backgroundColor: Colors.green),
+        );
+        context.pop();
+      } else {
+        final error = ref.read(leadsProvider).error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error ?? 'Failed to create lead. Please check the required fields.')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isSaving = ref.watch(leadsProvider).isLoading;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create New Lead', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(widget.existingLead != null ? 'Edit Lead' : 'Create New Lead', style: const TextStyle(fontWeight: FontWeight.bold)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -68,11 +107,11 @@ class _CreateLeadScreenState extends ConsumerState<CreateLeadScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Header
-            const Text('LEAD ACQUISITION', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: AppColors.onSurfaceVariant)),
+            Text('LEAD ACQUISITION', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: context.colors.onSurfaceVariant)),
             const SizedBox(height: 8),
-            Text('Capture Potential', style: Theme.of(context).textTheme.displayMedium),
+            Text(widget.existingLead != null ? 'Update Profile' : 'Capture Potential', style: Theme.of(context).textTheme.displayMedium),
             const SizedBox(height: 16),
-            Container(width: 48, height: 4, decoration: BoxDecoration(color: AppColors.primaryContainer, borderRadius: BorderRadius.circular(2))),
+            Container(width: 48, height: 4, decoration: BoxDecoration(color: context.colors.primaryContainer, borderRadius: BorderRadius.circular(2))),
             const SizedBox(height: 32),
 
             // Form Sections
@@ -118,24 +157,26 @@ class _CreateLeadScreenState extends ConsumerState<CreateLeadScreen> {
       bottomSheet: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.9),
-          border: Border(top: BorderSide(color: AppColors.outlineVariant.withOpacity(0.2))),
+          color: context.colors.background,
+          border: Border(top: BorderSide(color: context.colors.outlineVariant)),
         ),
         child: SafeArea(
           child: Row(
             children: [
               TextButton(
                 onPressed: () => context.pop(),
-                child: const Text('Discard Draft', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.onSurfaceVariant)),
+                child: Text('Discard Changes', style: TextStyle(fontWeight: FontWeight.bold, color: context.colors.onSurfaceVariant)),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: _saveLead,
-                  icon: const Icon(Icons.verified_user),
-                  label: const Text('Save Lead Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+                  onPressed: isSaving ? null : _saveLead,
+                  icon: isSaving 
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Icon(Icons.verified_user),
+                  label: Text(isSaving ? 'Saving...' : (widget.existingLead != null ? 'Update Lead Profile' : 'Save Lead Profile'), style: const TextStyle(fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: context.colors.primary,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -153,19 +194,16 @@ class _CreateLeadScreenState extends ConsumerState<CreateLeadScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.colors.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.1)),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 24, offset: const Offset(0, 8)),
-        ],
+        border: Border.all(color: context.colors.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: AppColors.primaryContainer),
+              Icon(icon, color: context.colors.primaryContainer),
               const SizedBox(width: 12),
               Text(title, style: Theme.of(context).textTheme.titleLarge),
             ],
@@ -181,7 +219,7 @@ class _CreateLeadScreenState extends ConsumerState<CreateLeadScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: AppColors.onSurfaceVariant)),
+        Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: context.colors.onSurfaceVariant)),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
@@ -189,12 +227,6 @@ class _CreateLeadScreenState extends ConsumerState<CreateLeadScreen> {
           decoration: InputDecoration(
             hintText: hint,
             prefixText: prefixText,
-            filled: true,
-            fillColor: AppColors.surfaceContainerLow,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none,
-            ),
           ),
         ),
       ],

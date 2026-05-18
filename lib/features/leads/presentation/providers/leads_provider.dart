@@ -42,17 +42,22 @@ class LeadsNotifier extends StateNotifier<LeadsState> {
     fetchLeads();
   }
 
+  String _errorMessage(Object e) {
+    final text = e.toString();
+    return text.startsWith('Exception: ') ? text.substring('Exception: '.length) : text;
+  }
+
   Future<void> fetchLeads() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final leads = await _leadsService.fetchAssignedLeads();
       state = state.copyWith(isLoading: false, leads: leads);
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: _errorMessage(e));
     }
   }
 
-  Future<void> updateLeadStage(String leadId, String newStageId) async {
+  Future<bool> updateLeadStage(String leadId, String newStageId) async {
     try {
       final updatedLead = await _leadsService.updateLeadStage(leadId, newStageId);
       
@@ -61,8 +66,10 @@ class LeadsNotifier extends StateNotifier<LeadsState> {
       }).toList();
 
       state = state.copyWith(leads: updatedLeads, selectedLead: updatedLead);
+      return true;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: _errorMessage(e));
+      return false;
     }
   }
 
@@ -85,7 +92,7 @@ class LeadsNotifier extends StateNotifier<LeadsState> {
 
       state = state.copyWith(leads: updatedLeads, selectedLead: updatedLead);
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: _errorMessage(e));
     }
   }
 
@@ -99,7 +106,28 @@ class LeadsNotifier extends StateNotifier<LeadsState> {
       );
       return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: _errorMessage(e));
+      return false;
+    }
+  }
+
+  Future<bool> updateLead(String leadId, Map<String, dynamic> data) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final updatedLead = await _leadsService.updateLead(leadId, data);
+      
+      final updatedLeads = state.leads.map((lead) {
+        return lead.id == leadId ? updatedLead : lead;
+      }).toList();
+
+      state = state.copyWith(
+        isLoading: false,
+        leads: updatedLeads, 
+        selectedLead: updatedLead
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: _errorMessage(e));
       return false;
     }
   }

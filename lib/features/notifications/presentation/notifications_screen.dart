@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/models/notification_model.dart';
 import '../../../core/theme/app_theme.dart';
+import 'providers/notifications_provider.dart';
+import '../../../services/notifications_service.dart';
 
-class NotificationsScreen extends StatelessWidget {
+class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final notificationsAsync = ref.watch(notificationsProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -15,103 +21,108 @@ class NotificationsScreen extends StatelessWidget {
           onPressed: () => context.pop(),
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.done_all),
+            onPressed: () async {
+              await ref.read(notificationsServiceProvider).markAllAsRead();
+              ref.invalidate(notificationsProvider);
+            },
+          ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(24.0),
-        children: [
-          // Today
-          _buildDateHeader('Today'),
-          _buildNotificationItem(
-            context,
-            title: 'New Lead Assigned',
-            time: '2m ago',
-            desc: 'Sarah Jenkins assigned to you. Review her profile and contact information.',
-            icon: Icons.person_add,
-            iconBgColor: AppColors.secondaryContainer,
-            iconColor: AppColors.onSecondaryContainer,
-            status: 'SUCCESS',
-            statusColor: AppColors.secondaryFixed,
-          ),
-          const SizedBox(height: 16),
-          _buildNotificationItem(
-            context,
-            title: 'Task Due',
-            time: '45m ago',
-            desc: 'Property tour scheduled for 2:00 PM at 452 Oak Avenue.',
-            icon: Icons.calendar_today,
-            iconBgColor: AppColors.errorContainer,
-            iconColor: AppColors.error,
-            status: 'URGENT',
-            statusColor: AppColors.errorContainer,
-            isUrgent: true,
-          ),
-          const SizedBox(height: 16),
-          _buildNotificationItem(
-            context,
-            title: 'Price Drop Alert',
-            time: '3h ago',
-            desc: '3BR Condo in Downtown price reduced by \$15,000.',
-            icon: Icons.trending_down,
-            iconBgColor: AppColors.primaryContainer,
-            iconColor: AppColors.onPrimaryContainer,
-          ),
+      body: notificationsAsync.when(
+        data: (notifications) {
+          if (notifications.isEmpty) {
+            return _EmptyNotificationsState(
+              onRefresh: () async {
+                ref.invalidate(notificationsProvider);
+                await Future<void>.delayed(Duration.zero);
+              },
+            );
+          }
 
-          const SizedBox(height: 32),
+          final grouped = _groupByDay(notifications);
 
-          // Yesterday
-          _buildDateHeader('Yesterday'),
-          _buildNotificationItem(
-            context,
-            title: 'Follow-up Reminder',
-            time: 'Yesterday, 10:15 AM',
-            desc: 'Call Robert King about Downtown Condo interest.',
-            icon: Icons.call,
-            iconBgColor: AppColors.tertiaryFixed,
-            iconColor: AppColors.onTertiaryFixedVariant,
-            status: 'FOLLOW-UP',
-            statusColor: AppColors.tertiaryFixedDim,
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceContainer,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
+          return RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(notificationsProvider);
+              await Future<void>.delayed(Duration.zero);
+            },
+            child: ListView(
+              padding: const EdgeInsets.all(24.0),
               children: [
-                const CircleAvatar(
-                  radius: 24,
-                  backgroundImage: NetworkImage('https://lh3.googleusercontent.com/aida-public/AB6AXuDPr_9kr6YRE6z6QEyZkByzY2FYGGgNMfnl1ZC8okVSTbcUrIPYCsCUL7sc8YltaBqSakJa6IbR1hJ2NXRZB3xmlf6_kEqi-VXXh1oRlvgp1cNKFON8TDuySDxfwO4y-zyEy_kmbXa8b_K6ksfV2KD7Yj59cPF8yYNABrURz6OnsodZ3w4a4aagMVsDbEZODc8RZQmwurgx6p6NXxG1mmvwyPFG1khJE1A9qgkzwjFsfrCZsjTQakWpbjxIB4crw0ihqmdMi_P3Jqo2'),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('System Update Complete', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      const Text('The MLS sync for the Downtown area is now finalized.', style: TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant)),
-                    ],
-                  ),
-                ),
+                _buildSummary(context, notifications),
+                const SizedBox(height: 24),
+                for (final entry in grouped.entries) ...[
+                  _buildDateHeader(context, entry.key),
+                  const SizedBox(height: 16),
+                  for (final item in entry.value) ...[
+                    _buildNotificationItem(
+                      context,
+                      notification: item,
+                      onTap: () async {
+                        if (!item.isRead) {
+                          await ref.read(notificationsServiceProvider).markAsRead(item.id);
+                          ref.invalidate(notificationsProvider);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ],
               ],
             ),
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Text('Failed to load notifications: $error'),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummary(BuildContext context, List<NotificationModel> notifications) {
+    final unreadCount = notifications.where((item) => !item.isRead).length;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [context.colors.primaryContainer, context.colors.surfaceHighlight],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: context.colors.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Inbox', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text('$unreadCount unread alerts', style: TextStyle(color: context.colors.onSurfaceVariant)),
+            ],
+          ),
+          CircleAvatar(
+            radius: 22,
+            backgroundColor: context.colors.primary,
+            child: Text('$unreadCount', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDateHeader(String title) {
+  Widget _buildDateHeader(BuildContext context, String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24.0),
+      padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(
         children: [
-          Text(title.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: AppColors.onSurfaceVariant)),
-          const SizedBox(width: 16),
-          Expanded(child: Container(height: 1, color: AppColors.outlineVariant.withValues(alpha: 0.2))),
+          Text(title.toUpperCase(), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: context.colors.onSurfaceVariant)),
+          SizedBox(width: 16),
+          Expanded(child: Container(height: 1, color: context.colors.outlineVariant.withValues(alpha: 0.2))),
         ],
       ),
     );
@@ -119,68 +130,126 @@ class NotificationsScreen extends StatelessWidget {
 
   Widget _buildNotificationItem(
     BuildContext context, {
-    required String title,
-    required String time,
-    required String desc,
-    required IconData icon,
-    required Color iconBgColor,
-    required Color iconColor,
-    String? status,
-    Color? statusColor,
-    bool isUrgent = false,
+    required NotificationModel notification,
+    required VoidCallback onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border(left: isUrgent ? const BorderSide(color: AppColors.error, width: 4) : BorderSide.none),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 12, offset: const Offset(0, 4)),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(color: iconBgColor, borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: iconColor),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                    Text(time, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.onSurfaceVariant)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(desc, style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant, height: 1.5)),
-                if (status != null && statusColor != null) ...[
+    final isUrgent = notification.isUrgent || !notification.isRead;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(18),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: BorderRadius.circular(18),
+          border: Border(left: isUrgent ? BorderSide(color: context.colors.error, width: 4) : BorderSide.none),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 12, offset: const Offset(0, 4)),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: isUrgent ? context.colors.errorContainer : context.colors.secondaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                isUrgent ? Icons.notifications_active : Icons.notifications,
+                color: isUrgent ? context.colors.onErrorContainer : context.colors.onSecondaryContainer,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          notification.title,
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(_formatTime(notification.createdAt), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: context.colors.onSurfaceVariant)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(notification.message, style: TextStyle(fontSize: 12, color: context.colors.onSurfaceVariant, height: 1.5)),
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(color: statusColor, borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(
+                      color: isUrgent ? context.colors.errorContainer : context.colors.secondaryContainer,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Text(
-                      status,
+                      isUrgent ? 'URGENT' : (notification.isRead ? 'READ' : 'NEW'),
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: isUrgent ? AppColors.onErrorContainer : AppColors.onSecondaryFixed,
+                        color: isUrgent ? context.colors.onErrorContainer : context.colors.onSecondaryFixed,
                       ),
                     ),
                   ),
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Map<String, List<NotificationModel>> _groupByDay(List<NotificationModel> notifications) {
+    final grouped = <String, List<NotificationModel>>{};
+    for (final notification in notifications) {
+      final diff = DateTime.now().difference(notification.createdAt).inDays;
+      final key = diff <= 0 ? 'Today' : diff == 1 ? 'Yesterday' : '${notification.createdAt.month}/${notification.createdAt.day}/${notification.createdAt.year}';
+      grouped.putIfAbsent(key, () => []).add(notification);
+    }
+    return grouped;
+  }
+
+  String _formatTime(DateTime value) {
+    final hour = value.hour % 12 == 0 ? 12 : value.hour % 12;
+    final minute = value.minute.toString().padLeft(2, '0');
+    final period = value.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $period';
+  }
+}
+
+class _EmptyNotificationsState extends StatelessWidget {
+  final Future<void> Function() onRefresh;
+
+  const _EmptyNotificationsState({required this.onRefresh});
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.notifications_none, size: 72, color: context.colors.onSurfaceVariant),
+            const SizedBox(height: 16),
+            Text('No notifications yet', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 8),
+            Text('Urgent alerts and activity updates will show up here.', textAlign: TextAlign.center, style: TextStyle(color: context.colors.onSurfaceVariant)),
+            const SizedBox(height: 20),
+            ElevatedButton(onPressed: onRefresh, child: const Text('Refresh')),
+          ],
+        ),
       ),
     );
   }

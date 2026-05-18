@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
@@ -27,312 +28,342 @@ class LeadDetailsScreen extends ConsumerWidget {
       );
     }
 
+    final stageColor = lead.stage?.uiColor ?? context.colors.primary;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Lead Details', style: TextStyle(fontWeight: FontWeight.bold)),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-        actions: [
-          IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Hero Section
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
+      backgroundColor: context.colors.background,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 120.0,
+            floating: false,
+            pinned: true,
+            backgroundColor: context.colors.surface,
+            elevation: 0,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(
+                '${lead.firstName} ${lead.lastName}',
+                style: TextStyle(fontWeight: FontWeight.bold, color: context.colors.onBackground, fontSize: 18),
+              ),
+              titlePadding: const EdgeInsets.only(left: 48, bottom: 16),
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.edit_outlined), 
+                onPressed: () {
+                  context.push('/leads/${lead.id}/edit', extra: lead);
+                },
+              ),
+              if (ref.watch(authProvider).user?.role != 'EMPLOYEE')
+                IconButton(
+                  icon: const Icon(Icons.person_add_alt),
+                  onPressed: () => _showAssignmentDialog(context, ref, lead.id),
                 ),
-                child: Column(
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            ],
+          ),
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Hero Section
+                Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: context.colors.surface,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: context.colors.outlineVariant),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Column(
                       children: [
-                        GestureDetector(
-                          onTap: () => _showStageSelectionSheet(context, ref, lead.id, lead.stageId),
-                          child: Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(24),
-                                child: Container(
-                                      width: 96,
-                                      height: 96,
-                                      color: (lead.stage?.uiColor ?? AppColors.primaryFixed).withValues(alpha: 0.2),
-                                      child: Center(
-                                        child: Text(
-                                          lead.firstName.isNotEmpty ? lead.firstName[0].toUpperCase() : '?', 
-                                          style: TextStyle(
-                                            fontSize: 32, 
-                                            fontWeight: FontWeight.bold, 
-                                            color: lead.stage?.uiColor ?? AppColors.primary
-                                          )
-                                        ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GestureDetector(
+                              onTap: () => _showStageSelectionSheet(context, ref, lead.id, lead.stageId),
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  CircleAvatar(
+                                    radius: 40,
+                                    backgroundColor: stageColor.withValues(alpha: 0.15),
+                                    child: Text(
+                                      lead.firstName.isNotEmpty ? lead.firstName[0].toUpperCase() : '?',
+                                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: stageColor),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: 0,
+                                    right: -4,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: stageColor,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: context.colors.surface, width: 3),
+                                      ),
+                                      child: const Icon(Icons.sync_alt, size: 12, color: Colors.white),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: stageColor.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: stageColor.withValues(alpha: 0.2)),
+                                    ),
+                                    child: Text(
+                                      (lead.stage?.name ?? 'NEW').toUpperCase(),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                        color: stageColor,
+                                        letterSpacing: 1,
                                       ),
                                     ),
-                              ),
-                              Positioned(
-                                bottom: -4,
-                                right: -4,
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: lead.stage?.uiColor ?? AppColors.primary,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 3),
                                   ),
-                                  child: const Icon(Icons.edit, size: 12, color: Colors.white),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 24),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('${lead.firstName} ${lead.lastName}', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary)),
-                              const SizedBox(height: 4),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: (lead.stage?.uiColor ?? AppColors.surfaceContainerHigh).withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: (lead.stage?.uiColor ?? AppColors.outlineVariant).withValues(alpha: 0.2)),
-                                ),
-                                child: Text(
-                                  (lead.stage?.name ?? 'NEW').toUpperCase(),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w900,
-                                    color: lead.stage?.uiColor ?? AppColors.onSurfaceVariant,
-                                    letterSpacing: 1
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.email_outlined, size: 14, color: context.colors.onSurfaceVariant),
+                                      SizedBox(width: 8),
+                                      Expanded(child: Text(lead.email ?? 'No email', style: TextStyle(color: context.colors.onSurfaceVariant, fontSize: 13), overflow: TextOverflow.ellipsis)),
+                                    ],
                                   ),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  const Icon(Icons.email_outlined, size: 14, color: AppColors.onSurfaceVariant),
-                                  const SizedBox(width: 8),
-                                  Expanded(child: Text(lead.email ?? 'No email', style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13), overflow: TextOverflow.ellipsis)),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.phone_outlined, size: 14, color: context.colors.onSurfaceVariant),
+                                      SizedBox(width: 8),
+                                      Text(lead.phone ?? 'No phone', style: TextStyle(color: context.colors.onSurfaceVariant, fontSize: 13)),
+                                    ],
+                                  ),
                                 ],
                               ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.phone_outlined, size: 14, color: AppColors.onSurfaceVariant),
-                                  const SizedBox(width: 8),
-                                  Text(lead.phone ?? 'No phone', style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 13)),
-                                ],
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-
-                    // Additional Details Grid
-                    const SizedBox(height: 24),
-                    GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      childAspectRatio: 2.5,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      children: [
-                        _buildDetailItem('LOCATION', lead.location ?? 'Not set', Icons.location_on),
-                        _buildDetailItem('SOURCE', lead.source ?? 'Not set', Icons.campaign),
-                        _buildDetailItem('BUDGET', lead.budget != null ? '₹${NumberFormat('#,##,###').format(lead.budget)}' : 'Not set', Icons.payments),
-                        _buildDetailItem('PROPERTY', lead.interestedProperty ?? 'Not set', Icons.home_work),
-                        _buildDetailItem('PRE-APPROVAL', lead.preapprovalStatus ?? 'Not set', Icons.verified_user),
-                      ],
-                    ),
-                  ],
+                  ).animate().fadeIn().slideY(begin: 0.1, end: 0),
                 ),
-              ),
-            ),
-
-            // Action Buttons
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Row(
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.call),
-                    label: const Text('Call'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryContainer,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  if (ref.watch(authProvider).user?.role != 'EMPLOYEE')
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        // Show assignment dialog
-                        _showAssignmentDialog(context, ref, lead.id);
-                      },
-                      icon: const Icon(Icons.person_add),
-                      label: const Text('Assign'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                
+                // Pipeline Stats (Score)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [context.colors.accent1, context.colors.accent2],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                  if (ref.watch(authProvider).user?.role != 'EMPLOYEE')
-                    const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed: () => _showNoteDialog(context, ref, lead.id),
-                    icon: const Icon(Icons.sticky_note_2_outlined),
-                    label: const Text('Add Note'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: AppColors.primary,
-                      elevation: 0,
-                      side: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('LEAD SCORE', style: TextStyle(fontSize: 10, color: Colors.white70, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                            const SizedBox(height: 4),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                Text('85', style: Theme.of(context).textTheme.headlineMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                                const Text(' / 100', style: TextStyle(color: Colors.white70)),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), shape: BoxShape.circle),
+                          child: const Icon(Icons.local_fire_department, color: Colors.white),
+                        ),
+                      ],
                     ),
+                  ).animate().fadeIn(delay: 100.ms),
+                ),
+                const SizedBox(height: 24),
+
+                // Collapsible Sections
+                _buildCollapsibleSection(
+                  context,
+                  title: 'Overview',
+                  icon: Icons.dashboard_outlined,
+                  initiallyExpanded: true,
+                  child: GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    childAspectRatio: 2.5,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    children: [
+                      _buildDetailItem(context, 'LOCATION', lead.location ?? 'Not set', Icons.location_on),
+                      _buildDetailItem(context, 'SOURCE', lead.source ?? 'Not set', Icons.campaign),
+                      _buildDetailItem(context, 'BUDGET', lead.budget != null ? '₹${NumberFormat('#,##,###').format(lead.budget)}' : 'Not set', Icons.payments),
+                      _buildDetailItem(context, 'PROPERTY', lead.interestedProperty ?? 'Not set', Icons.home_work),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(
-                    onPressed: () => _showScheduleDialog(context, ref, lead.id),
-                    icon: const Icon(Icons.event_outlined),
-                    label: const Text('Schedule'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: AppColors.primary,
-                      elevation: 0,
-                      side: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.5)),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                ).animate().fadeIn(delay: 200.ms),
+
+                _buildCollapsibleSection(
+                  context,
+                  title: 'Activities',
+                  icon: Icons.history,
+                  child: _buildTimeline(context, ref, leadId),
+                ).animate().fadeIn(delay: 300.ms),
+
+                _buildCollapsibleSection(
+                  context,
+                  title: 'Notes',
+                  icon: Icons.sticky_note_2_outlined,
+                  child: Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: context.colors.surfaceHighlight, borderRadius: BorderRadius.circular(12)),
+                    child: Text(lead.notes ?? 'No additional notes', style: TextStyle(color: context.colors.onSurfaceVariant, fontSize: 13)),
                   ),
-                ],
-              ),
+                ).animate().fadeIn(delay: 400.ms),
+
+                const SizedBox(height: 100),
+              ],
             ),
-
-            // Pipeline Stats
-            Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryContainer,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('LEAD SCORE', style: TextStyle(fontSize: 10, color: Colors.white70, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                          const SizedBox(height: 8),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.baseline,
-                            textBaseline: TextBaseline.alphabetic,
-                            children: [
-                              Text('85', style: Theme.of(context).textTheme.headlineLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
-                              const Text(' / 100', style: TextStyle(color: Colors.white70)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Timeline
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Activity Timeline', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final activityState = ref.watch(activitiesProvider(leadId));
-                      
-                      if (activityState.isLoading) {
-                        return const Center(child: Padding(
-                          padding: EdgeInsets.all(24.0),
-                          child: CircularProgressIndicator(),
-                        ));
-                      }
-
-                      if (activityState.activities.isEmpty) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(32.0),
-                            child: Text('No activity recorded', style: TextStyle(color: AppColors.onSurfaceVariant, fontStyle: FontStyle.italic)),
-                          ),
-                        );
-                      }
-
-                      return Column(
-                        children: activityState.activities.map((act) {
-                          IconData icon = Icons.history;
-                          Color color = AppColors.primary;
-
-                          if (act.type == 'LEAD_CREATED') {
-                            icon = Icons.person_add;
-                            color = Colors.teal;
-                          } else if (act.type == 'LEAD_ASSIGNED') {
-                            icon = Icons.assignment_ind;
-                            color = Colors.blue;
-                          } else if (act.type == 'STAGE_CHANGED') {
-                            icon = Icons.sync_alt;
-                            color = Colors.orange;
-                          }
-
-                          return _buildTimelineItem(
-                            context,
-                            title: act.type.replaceAll('_', ' '),
-                            time: _formatDateTime(act.createdAt),
-                            desc: '${act.userFirstName} ${act.userLastName} performed this action',
-                            icon: icon,
-                            color: color,
-                          );
-                        }).toList(),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 100),
+          ),
+        ],
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        decoration: BoxDecoration(
+          color: context.colors.surface.withValues(alpha: 0.9),
+          border: Border(top: BorderSide(color: context.colors.outlineVariant)),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, -5)),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildStickyActionButton(context, Icons.call, 'Call', () {}),
+            _buildStickyActionButton(context, Icons.email_outlined, 'Email', () {}),
+            _buildStickyActionButton(context, Icons.sticky_note_2_outlined, 'Note', () => _showNoteDialog(context, ref, lead.id)),
+            _buildStickyActionButton(context, Icons.event_outlined, 'Task', () => _showScheduleDialog(context, ref, lead.id)),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildStickyActionButton(BuildContext context, IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: context.colors.primaryContainer.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: context.colors.primary, size: 20),
+          ),
+          SizedBox(height: 4),
+          Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: context.colors.onSurface)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCollapsibleSection(BuildContext context, {required String title, required IconData icon, required Widget child, bool initiallyExpanded = false}) {
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        initiallyExpanded: initiallyExpanded,
+        tilePadding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+        iconColor: context.colors.primary,
+        collapsedIconColor: context.colors.onSurfaceVariant,
+        leading: Container(
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(color: context.colors.primaryContainer.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+          child: Icon(icon, color: context.colors.primary, size: 20),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 24, right: 24, bottom: 24),
+            child: child,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeline(BuildContext context, WidgetRef ref, String leadId) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final activityState = ref.watch(activitiesProvider(leadId));
+        
+        if (activityState.isLoading) {
+          return const Center(child: Padding(padding: EdgeInsets.all(24.0), child: CircularProgressIndicator()));
+        }
+
+        if (activityState.activities.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.all(32.0),
+              child: Text('No activity recorded', style: TextStyle(color: context.colors.onSurfaceVariant, fontStyle: FontStyle.italic)),
+            ),
+          );
+        }
+
+        return Column(
+          children: activityState.activities.map((act) {
+            IconData icon = Icons.history;
+            Color color = context.colors.primary;
+
+            if (act.type == 'LEAD_CREATED') {
+              icon = Icons.person_add;
+              color = Colors.teal;
+            } else if (act.type == 'LEAD_ASSIGNED') {
+              icon = Icons.assignment_ind;
+              color = Colors.blue;
+            } else if (act.type == 'STAGE_CHANGED') {
+              icon = Icons.sync_alt;
+              color = Colors.orange;
+            }
+
+            return _buildTimelineItem(
+              context,
+              title: act.type.replaceAll('_', ' '),
+              time: _formatDateTime(act.createdAt),
+              desc: '${act.userFirstName} ${act.userLastName} performed this action',
+              icon: icon,
+              color: color,
+            );
+          }).toList(),
+        );
+      },
     );
   }
 
@@ -349,26 +380,27 @@ class LeadDetailsScreen extends ConsumerWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.surface, width: 4),
-            ),
-            child: Icon(icon, color: Colors.white, size: 12),
+          Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: color, width: 2),
+                ),
+                child: Icon(icon, color: color, size: 14),
+              ),
+            ],
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.colors.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border(left: BorderSide(color: color, width: 4)),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2)),
-                ],
+                border: Border.all(color: context.colors.outlineVariant),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -376,12 +408,12 @@ class LeadDetailsScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary)),
-                      Text(time, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.onSurfaceVariant, letterSpacing: 1)),
+                      Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: context.colors.onSurface)),
+                      Text(time, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: context.colors.onSurfaceVariant)),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(desc, style: TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant)),
+                  SizedBox(height: 8),
+                  Text(desc, style: TextStyle(fontSize: 12, color: context.colors.onSurfaceVariant)),
                 ],
               ),
             ),
@@ -391,21 +423,21 @@ class LeadDetailsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetailItem(String label, String value, IconData icon) {
+  Widget _buildDetailItem(BuildContext context, String label, String value, IconData icon) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(icon, size: 12, color: AppColors.primary),
+            Icon(icon, size: 12, color: context.colors.primary),
             const SizedBox(width: 4),
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1,
-                color: AppColors.onSurfaceVariant,
+                color: context.colors.onSurfaceVariant,
               ),
             ),
           ],
@@ -432,9 +464,9 @@ class LeadDetailsScreen extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         ),
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -445,15 +477,15 @@ class LeadDetailsScreen extends ConsumerWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.outlineVariant,
+                  color: context.colors.outlineVariant,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             const SizedBox(height: 24),
             const Text('Assign Lead to Agent', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            const Text('Select a team member to handle this lead', style: TextStyle(color: AppColors.onSurfaceVariant)),
+            SizedBox(height: 8),
+            Text('Select a team member to handle this lead', style: TextStyle(color: context.colors.onSurfaceVariant)),
             const SizedBox(height: 24),
             Expanded(
               child: FutureBuilder(
@@ -472,13 +504,13 @@ class LeadDetailsScreen extends ConsumerWidget {
                           if (context.mounted) Navigator.pop(context);
                         },
                         leading: CircleAvatar(
-                          backgroundColor: AppColors.primaryContainer.withValues(alpha: 0.2),
-                          child: Text(member.firstName[0].toUpperCase(), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                          backgroundColor: context.colors.primaryContainer.withValues(alpha: 0.2),
+                          child: Text(member.firstName[0].toUpperCase(), style: TextStyle(color: context.colors.primary, fontWeight: FontWeight.bold)),
                         ),
                         title: Text('${member.firstName} ${member.lastName}', style: const TextStyle(fontWeight: FontWeight.bold)),
                         subtitle: Text(member.role),
-                        trailing: const Icon(Icons.chevron_right),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: AppColors.outlineVariant.withValues(alpha: 0.3))),
+                        trailing: Icon(Icons.chevron_right),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: context.colors.outlineVariant.withValues(alpha: 0.3))),
                       );
                     },
                   );
@@ -498,9 +530,9 @@ class LeadDetailsScreen extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         height: MediaQuery.of(context).size.height * 0.6,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        decoration: BoxDecoration(
+          color: context.colors.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         ),
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -511,15 +543,15 @@ class LeadDetailsScreen extends ConsumerWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.outlineVariant,
+                  color: context.colors.outlineVariant,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             const SizedBox(height: 24),
             const Text('Update Pipeline Stage', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            const Text('Moving the lead forward in the pipeline', style: TextStyle(color: AppColors.onSurfaceVariant)),
+            SizedBox(height: 8),
+            Text('Moving the lead forward in the pipeline', style: TextStyle(color: context.colors.onSurfaceVariant)),
             const SizedBox(height: 24),
             Expanded(
               child: Consumer(
@@ -547,14 +579,14 @@ class LeadDetailsScreen extends ConsumerWidget {
                             shape: BoxShape.circle,
                           ),
                         ),
-                        title: Text(stage.name, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: isSelected ? AppColors.primary : AppColors.onSurface)),
-                        trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.primary) : const Icon(Icons.chevron_right, size: 16),
+                        title: Text(stage.name, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: isSelected ? context.colors.primary : context.colors.onSurface)),
+                        trailing: isSelected ? Icon(Icons.check_circle, color: context.colors.primary) : Icon(Icons.chevron_right, size: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16), 
-                          side: BorderSide(color: isSelected ? AppColors.primary.withValues(alpha: 0.5) : AppColors.outlineVariant.withValues(alpha: 0.3), width: isSelected ? 2 : 1)
+                          side: BorderSide(color: isSelected ? context.colors.primary.withValues(alpha: 0.5) : context.colors.outlineVariant.withValues(alpha: 0.3), width: isSelected ? 2 : 1)
                         ),
                         selected: isSelected,
-                        selectedTileColor: AppColors.primaryContainer.withValues(alpha: 0.05),
+                        selectedTileColor: context.colors.primaryContainer.withValues(alpha: 0.05),
                       );
                     },
                   );
@@ -591,7 +623,7 @@ class LeadDetailsScreen extends ConsumerWidget {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
+              backgroundColor: context.colors.primary,
               foregroundColor: Colors.white,
             ),
             child: const Text('Save Note'),
@@ -645,6 +677,7 @@ class LeadDetailsScreen extends ConsumerWidget {
                       lastDate: DateTime.now().add(const Duration(days: 365)),
                     );
                     if (date != null) {
+                      if (!context.mounted) return;
                       final time = await showTimePicker(
                         context: context,
                         initialTime: TimeOfDay.fromDateTime(selectedDate),
@@ -675,7 +708,7 @@ class LeadDetailsScreen extends ConsumerWidget {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: context.colors.primary,
                 foregroundColor: Colors.white,
               ),
               child: const Text('Schedule'),

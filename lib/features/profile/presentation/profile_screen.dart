@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../../main.dart';
+import '../../../core/network/api_client.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
 import '../../leads/presentation/providers/leads_provider.dart';
 
@@ -43,7 +44,7 @@ class ProfileScreen extends ConsumerWidget {
                       width: 128,
                       height: 128,
                       decoration: BoxDecoration(
-                        color: AppColors.primaryContainer,
+                        color: context.colors.primaryContainer,
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 20, offset: const Offset(0, 10)),
@@ -64,27 +65,27 @@ class ProfileScreen extends ConsumerWidget {
                       child: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: context.colors.surface,
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4)),
                           ],
                         ),
-                        child: const Icon(Icons.edit, size: 20, color: AppColors.primary),
+                        child: Icon(Icons.edit, size: 20, color: context.colors.primary),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
                 Text('${user?.firstName ?? ''} ${user?.lastName ?? ''}', style: Theme.of(context).textTheme.displayMedium),
-                const SizedBox(height: 4),
-                Text(user?.role ?? 'Agent', style: const TextStyle(fontWeight: FontWeight.w500, color: AppColors.onSurfaceVariant)),
+                SizedBox(height: 4),
+                Text(user?.role ?? 'Agent', style: TextStyle(fontWeight: FontWeight.w500, color: context.colors.onSurfaceVariant)),
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    _buildBadge('Top Producer', AppColors.secondaryContainer.withValues(alpha: 0.3), AppColors.onSecondaryFixedVariant),
-                    const SizedBox(width: 8),
-                    _buildBadge(user?.role ?? 'MEMBER', AppColors.primaryFixed, AppColors.onPrimaryFixed),
+                    _buildBadge('Top Producer', context.colors.secondaryContainer.withValues(alpha: 0.3), context.colors.onSecondaryFixedVariant),
+                    SizedBox(width: 8),
+                    _buildBadge(user?.role ?? 'MEMBER', context.colors.primaryFixed, context.colors.onPrimaryFixed),
                   ],
                 ),
               ],
@@ -106,20 +107,20 @@ class ProfileScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: AppColors.surfaceContainerLow, borderRadius: BorderRadius.circular(16)),
+              padding: EdgeInsets.all(20),
+              decoration: BoxDecoration(color: context.colors.surfaceContainerLow, borderRadius: BorderRadius.circular(16)),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('RESPONSE TIME', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: AppColors.onSurfaceVariant)),
-                      const SizedBox(height: 4),
-                      Text('1.2h', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary)),
+                      Text('RESPONSE TIME', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: context.colors.onSurfaceVariant)),
+                      SizedBox(height: 4),
+                      Text('1.2h', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: context.colors.primary)),
                     ],
                   ),
-                  const Icon(Icons.bolt, size: 32, color: AppColors.secondaryContainer),
+                  Icon(Icons.bolt, size: 32, color: context.colors.secondaryContainer),
                 ],
               ),
             ),
@@ -130,13 +131,14 @@ class ProfileScreen extends ConsumerWidget {
               context,
               title: 'Account Settings',
               items: [
-                _buildSettingsItem(icon: Icons.person, iconBg: AppColors.primaryFixed, iconColor: AppColors.primary, title: 'Personal Information', subtitle: 'Update your details and contact info'),
-                _buildSettingsItem(icon: Icons.lock, iconBg: AppColors.primaryFixed, iconColor: AppColors.primary, title: 'Password & Security', subtitle: 'Manage your credentials and 2FA'),
+                _buildSettingsItem(context, icon: Icons.person, iconBg: context.colors.primaryFixed, iconColor: context.colors.primary, title: 'Personal Information', subtitle: 'Update your details and contact info'),
+                _buildSettingsItem(context, icon: Icons.lock, iconBg: context.colors.primaryFixed, iconColor: context.colors.primary, title: 'Password & Security', subtitle: 'Manage your credentials and 2FA'),
                 if (ref.watch(authProvider).user?.role != 'EMPLOYEE')
                   _buildSettingsItem(
+                    context,
                     icon: Icons.diversity_3, 
-                    iconBg: AppColors.secondaryContainer.withValues(alpha: 0.2), 
-                    iconColor: AppColors.primary, 
+                    iconBg: context.colors.secondaryContainer.withValues(alpha: 0.2), 
+                    iconColor: context.colors.primary, 
                     title: 'Team Management', 
                     subtitle: 'Manage members and performance',
                     onTap: () => context.push('/profile/team'),
@@ -149,8 +151,26 @@ class ProfileScreen extends ConsumerWidget {
               context,
               title: 'Preferences',
               items: [
-                _buildSettingsItem(icon: Icons.dark_mode, iconBg: AppColors.tertiaryFixed, iconColor: AppColors.onTertiaryFixedVariant, title: 'Dark Mode', subtitle: 'Switch to high-contrast night view', isToggle: true),
-                _buildSettingsItem(icon: Icons.notifications, iconBg: AppColors.tertiaryFixed, iconColor: AppColors.onTertiaryFixedVariant, title: 'Notifications', subtitle: 'Email, Push and SMS alerts'),
+                _buildSettingsItem(
+                  context,
+                  icon: Icons.dark_mode, 
+                  iconBg: context.colors.tertiaryFixed, 
+                  iconColor: context.colors.onTertiaryFixedVariant, 
+                  title: 'Dark Mode', 
+                  subtitle: 'Switch to high-contrast night view', 
+                  isToggle: true,
+                  switchValue: ref.watch(themeModeProvider) == ThemeMode.dark || (ref.watch(themeModeProvider) == ThemeMode.system && MediaQuery.of(context).platformBrightness == Brightness.dark),
+                  onSwitchChanged: (val) async {
+                    ref.read(themeModeProvider.notifier).state = val ? ThemeMode.dark : ThemeMode.light;
+                    try {
+                      final storage = ref.read(secureStorageProvider);
+                      await storage.write(key: 'theme_mode', value: val ? 'dark' : 'light');
+                    } catch (e) {
+                      // ignore storage errors
+                    }
+                  },
+                ),
+                _buildSettingsItem(context, icon: Icons.notifications, iconBg: context.colors.tertiaryFixed, iconColor: context.colors.onTertiaryFixedVariant, title: 'Notifications', subtitle: 'Email, Push and SMS alerts'),
               ],
             ),
             const SizedBox(height: 24),
@@ -159,8 +179,8 @@ class ProfileScreen extends ConsumerWidget {
               context,
               title: 'Support & About',
               items: [
-                _buildSettingsItem(icon: Icons.help, iconBg: AppColors.surfaceContainerHigh, iconColor: AppColors.onSurfaceVariant, title: 'Help Center', subtitle: 'Documentation and support tickets'),
-                _buildSettingsItem(icon: Icons.description, iconBg: AppColors.surfaceContainerHigh, iconColor: AppColors.onSurfaceVariant, title: 'Terms of Service', subtitle: 'Legal information and privacy policy'),
+                _buildSettingsItem(context, icon: Icons.help, iconBg: context.colors.surfaceContainerHigh, iconColor: context.colors.onSurfaceVariant, title: 'Help Center', subtitle: 'Documentation and support tickets'),
+                _buildSettingsItem(context, icon: Icons.description, iconBg: context.colors.surfaceContainerHigh, iconColor: context.colors.onSurfaceVariant, title: 'Terms of Service', subtitle: 'Legal information and privacy policy'),
               ],
             ),
             const SizedBox(height: 32),
@@ -176,17 +196,17 @@ class ProfileScreen extends ConsumerWidget {
               icon: const Icon(Icons.logout),
               label: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.errorContainer,
-                foregroundColor: AppColors.onErrorContainer,
+                backgroundColor: context.colors.errorContainer,
+                foregroundColor: context.colors.onErrorContainer,
                 padding: const EdgeInsets.symmetric(vertical: 20),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'ESTATE LOGIC V2.4.0 • ENTERPRISE EDITION',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: AppColors.outline),
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: context.colors.outline),
             ),
           ],
         ),
@@ -204,14 +224,14 @@ class ProfileScreen extends ConsumerWidget {
 
   Widget _buildStatCard(BuildContext context, String title, String value) {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: AppColors.surfaceContainerLow, borderRadius: BorderRadius.circular(16)),
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(color: context.colors.surfaceContainerLow, borderRadius: BorderRadius.circular(16)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: AppColors.onSurfaceVariant)),
-          const Spacer(),
-          Text(value, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary)),
+          Text(title.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: context.colors.onSurfaceVariant)),
+          Spacer(),
+          Text(value, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, color: context.colors.primary)),
         ],
       ),
     );
@@ -222,12 +242,12 @@ class ProfileScreen extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 8.0, bottom: 16.0),
-          child: Text(title.toUpperCase(), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2, color: AppColors.onSurfaceVariant)),
+          padding: EdgeInsets.only(left: 8.0, bottom: 16.0),
+          child: Text(title.toUpperCase(), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2, color: context.colors.onSurfaceVariant)),
         ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.colors.surface,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 24, offset: const Offset(0, 8)),
@@ -237,7 +257,7 @@ class ProfileScreen extends ConsumerWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: items.length,
-            separatorBuilder: (context, index) => Divider(height: 1, color: AppColors.outlineVariant.withValues(alpha: 0.2)),
+            separatorBuilder: (context, index) => Divider(height: 1, color: context.colors.outlineVariant.withValues(alpha: 0.2)),
             itemBuilder: (context, index) => items[index],
           ),
         ),
@@ -245,13 +265,16 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSettingsItem({
+  Widget _buildSettingsItem(
+    BuildContext context, {
     required IconData icon,
     required Color iconBg,
     required Color iconColor,
     required String title,
     required String subtitle,
     bool isToggle = false,
+    bool switchValue = false,
+    ValueChanged<bool>? onSwitchChanged,
     VoidCallback? onTap,
   }) {
     return InkWell(
@@ -271,15 +294,15 @@ class ProfileScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
-                  Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.onSurfaceVariant)),
+                  Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: context.colors.onSurface)),
+                  Text(subtitle, style: TextStyle(fontSize: 12, color: context.colors.onSurfaceVariant)),
                 ],
               ),
             ),
             if (isToggle)
-              Switch(value: false, onChanged: (v) {}, activeThumbColor: AppColors.primary)
+              Switch(value: switchValue, onChanged: onSwitchChanged, activeThumbColor: context.colors.primary)
             else
-              const Icon(Icons.chevron_right, color: AppColors.outline),
+              Icon(Icons.chevron_right, color: context.colors.outline),
           ],
         ),
       ),

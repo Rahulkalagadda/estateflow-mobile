@@ -47,11 +47,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: RadialGradient(
             center: Alignment.topRight,
             radius: 1.5,
-            colors: [AppColors.surfaceContainerHigh, AppColors.surface],
+            colors: [context.colors.surfaceContainerHigh, context.colors.surface],
           ),
         ),
         child: Center(
@@ -67,7 +67,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.primary,
+                      color: context.colors.primary,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: const Icon(Icons.domain, color: Colors.white),
@@ -80,7 +80,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'The Digital Concierge for Real Estate Professionals',
-                    style: TextStyle(color: AppColors.onSurfaceVariant),
+                    style: TextStyle(color: context.colors.onSurfaceVariant),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),
@@ -89,7 +89,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   Container(
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: context.colors.surface,
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
@@ -115,7 +115,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.5,
-                            color: AppColors.onSurfaceVariant,
+                            color: context.colors.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -125,7 +125,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             hintText: 'agent@estatelogic.com',
                             prefixIcon: const Icon(Icons.mail_outline),
                             filled: true,
-                            fillColor: AppColors.surfaceContainerLow,
+                            fillColor: context.colors.surfaceContainerLow,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -144,7 +144,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 1.5,
-                                color: AppColors.onSurfaceVariant,
+                                color: context.colors.onSurfaceVariant,
                               ),
                             ),
                             TextButton(
@@ -154,7 +154,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryContainer,
+                                  color: context.colors.primaryContainer,
                                 ),
                               ),
                             ),
@@ -168,7 +168,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             prefixIcon: const Icon(Icons.lock_outline),
                             suffixIcon: const Icon(Icons.visibility_outlined),
                             filled: true,
-                            fillColor: AppColors.surfaceContainerLow,
+                            fillColor: context.colors.surfaceContainerLow,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -181,7 +181,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ElevatedButton(
                           onPressed: _isLoading ? null : _handleLogin,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
+                            backgroundColor: context.colors.primary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -207,16 +207,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           children: [
                             Text(
                               'Invited by your admin?',
-                              style: TextStyle(fontSize: 13, color: AppColors.onSurfaceVariant),
+                              style: TextStyle(fontSize: 13, color: context.colors.onSurfaceVariant),
                             ),
                             TextButton(
                               onPressed: () => context.push('/activate'),
-                              child: const Text(
+                              child: Text(
                                 'Activate Account',
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
+                                  color: context.colors.primary,
                                 ),
                               ),
                             ),

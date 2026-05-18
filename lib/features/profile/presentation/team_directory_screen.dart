@@ -51,7 +51,7 @@ class _TeamDirectoryScreenState extends ConsumerState<TeamDirectoryScreen> {
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.colors.surface,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
@@ -67,16 +67,16 @@ class _TeamDirectoryScreenState extends ConsumerState<TeamDirectoryScreen> {
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: AppColors.primaryContainer.withValues(alpha: 0.2),
+                        color: context.colors.primaryContainer.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Center(
                         child: Text(
                           member.firstName[0].toUpperCase(),
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
+                            color: context.colors.primary,
                           ),
                         ),
                       ),
@@ -96,7 +96,7 @@ class _TeamDirectoryScreenState extends ConsumerState<TeamDirectoryScreen> {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: AppColors.onSurfaceVariant,
+                              color: context.colors.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -106,8 +106,8 @@ class _TeamDirectoryScreenState extends ConsumerState<TeamDirectoryScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: member.role == 'OWNER' || member.role == 'MANAGER' 
-                          ? AppColors.primaryContainer 
-                          : AppColors.surfaceContainerHigh,
+                          ? context.colors.primaryContainer 
+                          : context.colors.surfaceContainerHigh,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -116,8 +116,8 @@ class _TeamDirectoryScreenState extends ConsumerState<TeamDirectoryScreen> {
                           fontSize: 10,
                           fontWeight: FontWeight.bold,
                           color: member.role == 'OWNER' || member.role == 'MANAGER' 
-                            ? Colors.white 
-                            : AppColors.onSurfaceVariant,
+                            ? context.colors.onPrimaryContainer
+                            : context.colors.onSurfaceVariant,
                         ),
                       ),
                     ),

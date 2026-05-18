@@ -28,7 +28,8 @@ class ApiClient {
           return handler.next(options);
         },
         onError: (DioException e, handler) async {
-          if (e.response?.statusCode == 401 && !_isRefreshing) {
+          final isAuthPath = e.requestOptions.path == '/auth/refresh' || e.requestOptions.path == '/auth/logout';
+          if (e.response?.statusCode == 401 && !_isRefreshing && !isAuthPath) {
             _isRefreshing = true;
             try {
               final refreshToken = await storage.read(key: 'refresh_token');
@@ -45,6 +46,10 @@ class ApiClient {
                 final retryRes = await _dio.fetch(opts);
                 _isRefreshing = false;
                 return handler.resolve(retryRes);
+              } else {
+                _isRefreshing = false;
+                await _ref.read(authProvider.notifier).logout();
+                return handler.next(e);
               }
             } catch (refreshError) {
               _isRefreshing = false;

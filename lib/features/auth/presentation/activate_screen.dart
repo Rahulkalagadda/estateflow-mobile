@@ -74,17 +74,17 @@ class _ActivateScreenState extends ConsumerState<ActivateScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+          icon: Icon(Icons.arrow_back, color: context.colors.primary),
           onPressed: () => context.go('/login'),
         ),
       ),
       extendBodyBehindAppBar: true,
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: RadialGradient(
             center: Alignment.topRight,
             radius: 1.5,
-            colors: [AppColors.surfaceContainerHigh, AppColors.surface],
+            colors: [context.colors.surfaceContainerHigh, context.colors.surface],
           ),
         ),
         child: Center(
@@ -100,10 +100,10 @@ class _ActivateScreenState extends ConsumerState<ActivateScreen> {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.tertiaryFixedDim,
+                      color: context.colors.tertiaryFixedDim,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.verified_user, color: AppColors.onTertiaryFixed),
+                    child: Icon(Icons.verified_user, color: context.colors.onTertiaryFixed),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -113,7 +113,7 @@ class _ActivateScreenState extends ConsumerState<ActivateScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'Set your password to join the team',
-                    style: TextStyle(color: AppColors.onSurfaceVariant),
+                    style: TextStyle(color: context.colors.onSurfaceVariant),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 48),
@@ -122,11 +122,11 @@ class _ActivateScreenState extends ConsumerState<ActivateScreen> {
                   Container(
                     padding: const EdgeInsets.all(32),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: context.colors.surface,
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.04),
+                          color: Colors.black.withValues(alpha: 0.04),
                           blurRadius: 24,
                           offset: const Offset(0, 8),
                         ),
@@ -142,7 +142,7 @@ class _ActivateScreenState extends ConsumerState<ActivateScreen> {
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.5,
-                            color: AppColors.onSurfaceVariant,
+                            color: context.colors.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -152,7 +152,7 @@ class _ActivateScreenState extends ConsumerState<ActivateScreen> {
                             hintText: 'Enter the code from your admin',
                             prefixIcon: const Icon(Icons.key_outlined),
                             filled: true,
-                            fillColor: AppColors.surfaceContainerLow,
+                            fillColor: context.colors.surfaceContainerLow,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -168,7 +168,7 @@ class _ActivateScreenState extends ConsumerState<ActivateScreen> {
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.5,
-                            color: AppColors.onSurfaceVariant,
+                            color: context.colors.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -179,7 +179,7 @@ class _ActivateScreenState extends ConsumerState<ActivateScreen> {
                             hintText: '••••••••',
                             prefixIcon: const Icon(Icons.lock_outline),
                             filled: true,
-                            fillColor: AppColors.surfaceContainerLow,
+                            fillColor: context.colors.surfaceContainerLow,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -195,7 +195,7 @@ class _ActivateScreenState extends ConsumerState<ActivateScreen> {
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.5,
-                            color: AppColors.onSurfaceVariant,
+                            color: context.colors.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -206,7 +206,7 @@ class _ActivateScreenState extends ConsumerState<ActivateScreen> {
                             hintText: '••••••••',
                             prefixIcon: const Icon(Icons.lock_reset),
                             filled: true,
-                            fillColor: AppColors.surfaceContainerLow,
+                            fillColor: context.colors.surfaceContainerLow,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide.none,
@@ -219,7 +219,7 @@ class _ActivateScreenState extends ConsumerState<ActivateScreen> {
                         ElevatedButton(
                           onPressed: _isLoading ? null : _handleActivation,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
+                            backgroundColor: context.colors.primary,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(

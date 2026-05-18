@@ -4,6 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/models/user_model.dart';
+import '../../../../core/notifications/push_notification_service.dart';
 
 class AuthState {
   final bool isLoading;
@@ -46,14 +47,16 @@ class AuthState {
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   final apiClient = ref.watch(apiClientProvider);
   final storage = ref.watch(secureStorageProvider);
-  return AuthNotifier(apiClient, storage);
+  final pushService = ref.watch(pushNotificationServiceProvider);
+  return AuthNotifier(apiClient, storage, pushService);
 });
 
 class AuthNotifier extends StateNotifier<AuthState> {
   final ApiClient _apiClient;
   final FlutterSecureStorage _storage;
+  final PushNotificationService _pushService;
 
-  AuthNotifier(this._apiClient, this._storage) : super(AuthState()) {
+  AuthNotifier(this._apiClient, this._storage, this._pushService) : super(AuthState()) {
     _init();
   }
 
@@ -105,6 +108,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         refreshToken: refreshToken,
         user: user
       );
+        await _pushService.initialize();
+        await _pushService.syncTokenWithBackend();
       print('Auth State updated. Authenticated: ${state.isAuthenticated}');
       return true;
     } catch (e) {
@@ -147,6 +152,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         refreshToken: refreshToken,
         user: user
       );
+      await _pushService.initialize();
+      await _pushService.syncTokenWithBackend();
       return true;
     } catch (e) {
       String errorMessage = 'Activation failed';
@@ -162,10 +169,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await _storage.write(key: 'jwt_token', value: accessToken);
     await _storage.write(key: 'refresh_token', value: refreshToken);
     state = state.copyWith(accessToken: accessToken, refreshToken: refreshToken);
+    await _pushService.syncTokenWithBackend();
   }
 
   Future<void> logout() async {
     try {
+      await _pushService.clearTokenOnBackend();
       await _apiClient.dio.post('/auth/logout');
     } catch (e) {
       // Ignore logout error if already expired
